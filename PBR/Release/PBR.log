@@ -1,0 +1,13 @@
+﻿  Main.cpp
+Main.obj : error LNK2001: unresolved external symbol _SDL_GetWindowSurface
+Main.obj : error LNK2001: unresolved external symbol _SDL_Init
+Main.obj : error LNK2001: unresolved external symbol _SDL_DestroyWindow
+Main.obj : error LNK2001: unresolved external symbol _SDL_GetError
+Main.obj : error LNK2001: unresolved external symbol _SDL_Quit
+Main.obj : error LNK2001: unresolved external symbol _SDL_Delay
+Main.obj : error LNK2001: unresolved external symbol _SDL_MapRGB
+Main.obj : error LNK2001: unresolved external symbol _SDL_CreateWindow
+Main.obj : error LNK2001: unresolved external symbol _SDL_FillRect
+Main.obj : error LNK2001: unresolved external symbol _SDL_UpdateWindowSurface
+MSVCRT.lib(exe_main.obj) : error LNK2001: unresolved external symbol _main
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Release\PBR.exe : fatal error LNK1120: 11 unresolved externals

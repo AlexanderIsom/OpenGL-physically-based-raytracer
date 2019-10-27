@@ -1,0 +1,14 @@
+﻿Main.obj : error LNK2019: unresolved external symbol SDL_GetError referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_MapRGB referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_FillRect referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_CreateWindow referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_GetWindowSurface referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_UpdateWindowSurface referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_DestroyWindow referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_Delay referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_Init referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+Main.obj : error LNK2019: unresolved external symbol SDL_Quit referenced in function "int __cdecl SDL_main(int,char * const)" (?SDL_main@@YAHHQEAD@Z)
+MSVCRTD.lib(exe_main.obj) : error LNK2019: unresolved external symbol main referenced in function "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ)
+..\SDKs\Lib86\SDL2.lib : warning LNK4272: library machine type 'x86' conflicts with target machine type 'x64'
+..\SDKs\Lib86\SDL2main.lib : warning LNK4272: library machine type 'x86' conflicts with target machine type 'x64'
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\x64\Debug\PBR.exe : fatal error LNK1120: 11 unresolved externals
