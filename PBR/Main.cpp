@@ -1,36 +1,52 @@
 #include <SDL/SDL.h>
-#include <stdio.h>
+#include <GLEW/glew.h>
+#include <SDL/SDL_opengl.h>
+#include <iostream>
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const GLint SCREEN_WIDTH = 640;
+const GLint SCREEN_HEIGHT = 480;
 
 
 int main(int argc, char* args[]) {
-	SDL_Window* window = NULL;
-	SDL_Surface* screenSurface = NULL;
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-	}
-	else {
-		window = SDL_CreateWindow("SDL begin", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-		if (window == NULL) {
-			printf("window could not be created! sdl_error: %s\n", SDL_GetError());
-		}
-		else
-		{
-			screenSurface = SDL_GetWindowSurface(window);
-			SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0xff, 0xff));
+	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-			SDL_UpdateWindowSurface(window);
+	SDL_Window* window = SDL_CreateWindow("OpenGL", 200, 300, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
 
-			SDL_Delay(2000);
-		}
+	SDL_GLContext context = SDL_GL_CreateContext(window);
+
+	glewExperimental = GL_TRUE;
+
+	if (GLEW_OK != glewInit()) {
+		std::cout << "glew failed to initalize\n";
+
+		return EXIT_FAILURE;
 	}
 
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	SDL_Event windowEvent;
+
+	while (true) {
+		if (SDL_PollEvent(&windowEvent)) {
+			if (SDL_QUIT == windowEvent.type) {
+				break;
+			}
+		}
+
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		SDL_GL_SwapWindow(window);
+	}
+
+	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
-
 	SDL_Quit();
 
-	return 0;
+	return EXIT_SUCCESS;	
 }
