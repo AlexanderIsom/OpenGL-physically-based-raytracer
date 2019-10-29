@@ -1,2 +1,4 @@
 ﻿  Main.cpp
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(22,16): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(23,16): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
   PBR.vcxproj -> C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe

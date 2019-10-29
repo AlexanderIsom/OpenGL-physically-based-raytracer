@@ -1,52 +1,62 @@
-#include <SDL/SDL.h>
-#include <GLEW/glew.h>
-#include <SDL/SDL_opengl.h>
-#include <iostream>
 
-const GLint SCREEN_WIDTH = 640;
-const GLint SCREEN_HEIGHT = 480;
+#include <GL/glut.h>
+#include <math.h>
 
+static int win(0);
 
-int main(int argc, char* args[]) {
+const GLuint Width = 620;
+const GLuint Height = 480;
 
-	SDL_Init(SDL_INIT_EVERYTHING);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+float pos = -10.0f;
 
-	SDL_Window* window = SDL_CreateWindow("OpenGL", 200, 300, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
+void draw() {
 
-	SDL_GLContext context = SDL_GL_CreateContext(window);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glLoadIdentity();
+	//int i = 0;
 
-	glewExperimental = GL_TRUE;
+	glBegin(GL_POLYGON);
+	//glVertex2i(i, Height / 2 + sin(i * 50) * 100);
+	glVertex2f(pos, 1.0);
+	glVertex2f(pos, -1.0);
+	glVertex2f(pos+2.0, -1.0);
+	glVertex2f(pos+2.0, 1.0);
+	glEnd();
+	glutSwapBuffers();
+	//Sleep(50);
 
-	if (GLEW_OK != glewInit()) {
-		std::cout << "glew failed to initalize\n";
+//i++;
 
-		return EXIT_FAILURE;
-	}
+}
 
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+void Timer(int) {
+	glutPostRedisplay();
+	glutTimerFunc(1000/ 60, Timer, 0);
+	pos += 0.15f;
+}
 
-	SDL_Event windowEvent;
+int main(int argc, char* argv[]) {
+	glutInit(&argc, argv);
 
-	while (true) {
-		if (SDL_PollEvent(&windowEvent)) {
-			if (SDL_QUIT == windowEvent.type) {
-				break;
-			}
-		}
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowPosition(80, 80);
+	glutInitWindowSize(Width, Height);
+	glutCreateWindow("Test");
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+	glViewport(0, 0, (GLsizei)0, (GLsizei)0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-10, 10, -10, 10);
+	glMatrixMode(GL_MODELVIEW);
 
-		SDL_GL_SwapWindow(window);
-	}
+	glutDisplayFunc(draw);
+	glutTimerFunc(1000, Timer,0);
+	glClearColor(0, 0, 0, 0);
 
-	SDL_GL_DeleteContext(context);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	//std::thread first(draw, Height / 4);
+	//std::thread second(draw, Height - Height / 1);
 
-	return EXIT_SUCCESS;	
+	//first.join();
+	//second.join();
+	glutMainLoop();
 }
