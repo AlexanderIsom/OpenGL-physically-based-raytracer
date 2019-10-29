@@ -1,62 +1,215 @@
-
-#include <GL/glut.h>
-#include <math.h>
+#include <SDL/SDL.h>
+#include <GLEW/glew.h>
+#include <iostream>
 
 static int win(0);
 
-const GLuint Width = 620;
-const GLuint Height = 480;
+bool InitGL()
+{
+	glewExperimental = GL_TRUE;
 
-float pos = -10.0f;
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		std::cerr << "Error: GLEW failed to initialise with message: " << glewGetErrorString(err) << std::endl;
+		return false;
+	}
+	std::cout << "INFO: Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
 
-void draw() {
+	std::cout << "INFO: OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
+	std::cout << "INFO: OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "INFO: OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+	std::cout << "INFO: OpenGL Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
-	glClear(GL_COLOR_BUFFER_BIT);
-	glLoadIdentity();
-	//int i = 0;
-
-	glBegin(GL_POLYGON);
-	//glVertex2i(i, Height / 2 + sin(i * 50) * 100);
-	glVertex2f(pos, 1.0);
-	glVertex2f(pos, -1.0);
-	glVertex2f(pos+2.0, -1.0);
-	glVertex2f(pos+2.0, 1.0);
-	glEnd();
-	glutSwapBuffers();
-	//Sleep(50);
-
-//i++;
-
+	return true;
 }
 
-void Timer(int) {
-	glutPostRedisplay();
-	glutTimerFunc(1000/ 60, Timer, 0);
-	pos += 0.15f;
+GLuint CreateTriangleVAO()//tell opengl what verties to draw
+{
+	GLuint VAO = 0;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	float vertices[] = {
+		 -1.0f, -1.0f,
+		  1.0f, -1.0f,
+		 -1.0f,  1.0f,
+
+		  1.0f, -1.0f,
+		  1.0f, 1.0f,
+		 -1.0f,  1.0f
+	};
+	GLuint buffer = 0;
+	glGenBuffers(1, &buffer);	
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	glDisableVertexAttribArray(0);
+
+	return VAO;
 }
 
-int main(int argc, char* argv[]) {
-	glutInit(&argc, argv);
+void DrawVAOTris(GLuint VAO, int numVertices, GLuint shaderProgram)//tell opengl to actually draw it to the screen
+{	
+	glUseProgram(shaderProgram);
+	
+	glBindVertexArray(VAO);
+	
+	glDrawArrays(GL_TRIANGLES, 0, numVertices);
+	
+	glBindVertexArray(0);
 
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-	glutInitWindowPosition(80, 80);
-	glutInitWindowSize(Width, Height);
-	glutCreateWindow("Test");
+	glUseProgram(0);
+}
 
-	glViewport(0, 0, (GLsizei)0, (GLsizei)0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(-10, 10, -10, 10);
-	glMatrixMode(GL_MODELVIEW);
+bool CheckShaderCompiled(GLint shader) //check the shader compiled correctly
+{
+	GLint compiled;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if (!compiled)
+	{
+		GLsizei len;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
 
-	glutDisplayFunc(draw);
-	glutTimerFunc(1000, Timer,0);
-	glClearColor(0, 0, 0, 0);
+		GLchar* log = new GLchar[len + 1];
+		glGetShaderInfoLog(shader, len, &len, log);
+		std::cerr << "ERROR: Shader compilation failed: " << log << std::endl;
+		delete[] log;
 
-	//std::thread first(draw, Height / 4);
-	//std::thread second(draw, Height - Height / 1);
+		return false;
+	}
+	return true;
+}
 
-	//first.join();
-	//second.join();
-	glutMainLoop();
+GLuint LoadShaders()//colour / shade the object
+{
+
+	//vshader = vertex shader
+	//fshader = fragment shader
+	const GLchar *vShaderText = "#version 430 core\n\
+						 layout(location = 0) in vec4 vPosition;\n\
+						 void main()\n\
+						 {\n\
+								gl_Position = vPosition;\n\
+						 }";//maybe used for ray generation
+
+	const GLchar *fShaderText = "#version 430 core\n\
+						 out vec4 fColor;\n\
+						 void main(){ fColor = vec4(0.0,0.0,1.0,1.0); }"; //scene layout in here too
+
+
+	GLuint program = glCreateProgram();
+
+	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
+
+	glShaderSource(vShader, 1, &vShaderText, NULL);
+
+	glCompileShader(vShader);
+
+	if (!CheckShaderCompiled(vShader))
+	{
+		return 0;
+	}
+	
+	glAttachShader(program, vShader);
+
+
+	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fShader, 1, &fShaderText, NULL);
+	glCompileShader(fShader);
+	if (!CheckShaderCompiled(fShader))
+	{
+		return 0;
+	}
+	glAttachShader(program, fShader);
+
+	
+	glLinkProgram(program);
+	
+	GLint linked;
+	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	if (!linked)
+	{
+		GLsizei len;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+
+		GLchar* log = new GLchar[len + 1];
+		glGetProgramInfoLog(program, len, &len, log);
+		std::cerr << "ERROR: Shader linking failed: " << log << std::endl;
+		delete[] log;
+
+		return 0;
+	}
+
+	return program;
+}
+
+
+int main(int argc, char* args[]) {
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	{
+		std::cout << "Whoops! Something went very wrong, cannot initialise SDL :(" << std::endl;
+		return -1;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);//setting open gl version
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+	int windowPosX = 100;
+	int windowPosY = 100;
+	int windowWidth = 640;
+	int windowHeight = 480;
+
+
+	//using sdl to prep a window then launching opengl within it
+	SDL_Window* window = SDL_CreateWindow("OpenGL", windowPosX, windowPosY, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+
+	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
+
+	if (!InitGL()) {
+		return -1;
+	}
+
+	GLuint triangleVAO = CreateTriangleVAO();
+
+	GLuint shaderProgram = LoadShaders();
+
+	bool go = true;
+	while (go)
+	{
+		SDL_Event incomingEvent;
+		while (SDL_PollEvent(&incomingEvent))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
+		{
+			
+			switch (incomingEvent.type)
+			{
+			case SDL_QUIT:
+				go = false;
+				break;
+			}
+		}
+
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		DrawVAOTris(triangleVAO, 6, shaderProgram);
+		SDL_GL_SwapWindow(window);
+	}
+
+	//clean up
+	SDL_GL_DeleteContext(glcontext);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+
+	return 0;
 }

@@ -1,0 +1,11 @@
+sdl and opengl
+
+opengl raycaster with pbr
+put raycaster in the shader code
+
+
+
+draw a quad
+draw a sphere inside the fragment shader
+in the shader do the raytracing to the hard coded scene
+shade each pixel of the quad according to the result of the raycasting
