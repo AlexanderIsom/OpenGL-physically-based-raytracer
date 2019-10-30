@@ -40,7 +40,7 @@ GLuint CreateTriangleVAO()//tell opengl what verties to draw
 		 -1.0f,  1.0f
 	};
 	GLuint buffer = 0;
-	glGenBuffers(1, &buffer);	
+	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, vertices, GL_STATIC_DRAW);
 
@@ -56,13 +56,13 @@ GLuint CreateTriangleVAO()//tell opengl what verties to draw
 }
 
 void DrawVAOTris(GLuint VAO, int numVertices, GLuint shaderProgram)//tell opengl to actually draw it to the screen
-{	
+{
 	glUseProgram(shaderProgram);
-	
+
 	glBindVertexArray(VAO);
-	
+
 	glDrawArrays(GL_TRIANGLES, 0, numVertices);
-	
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -94,14 +94,30 @@ GLuint LoadShaders()//colour / shade the object
 	//fshader = fragment shader
 	const GLchar *vShaderText = "#version 430 core\n\
 						 layout(location = 0) in vec4 vPosition;\n\
+						 out vec2 vertexPos;\n\
 						 void main()\n\
 						 {\n\
 								gl_Position = vPosition;\n\
+								vertexPos = vec2(vPosition.x,vPosition.y);\n\
 						 }";//maybe used for ray generation
 
 	const GLchar *fShaderText = "#version 430 core\n\
 						 out vec4 fColor;\n\
-						 void main(){ fColor = vec4(0.0,0.0,1.0,1.0); }"; //scene layout in here too
+						 struct Sphere{\n\
+						  vec3 pos;\n\
+						  vec4 Color;\n\
+						  float radius;\n\
+						 };\n\
+						 in vec2 vertexPos;\n\
+						 void main(){\n\
+						 Sphere sph;\n\
+						 sph.pos = vec3(0.0,0.0,1.0);\n\
+						 sph.radius = 1.0f;\n\
+						 sph.color = vec4(1.0,0.0,0.0,1.0);\n\
+						 \n\
+						 \n\
+						 fColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);\n\
+						 }"; //scene layout in here too
 
 
 	GLuint program = glCreateProgram();
@@ -116,7 +132,7 @@ GLuint LoadShaders()//colour / shade the object
 	{
 		return 0;
 	}
-	
+
 	glAttachShader(program, vShader);
 
 
@@ -129,9 +145,9 @@ GLuint LoadShaders()//colour / shade the object
 	}
 	glAttachShader(program, fShader);
 
-	
+
 	glLinkProgram(program);
-	
+
 	GLint linked;
 	glGetProgramiv(program, GL_LINK_STATUS, &linked);
 	if (!linked)
@@ -151,7 +167,8 @@ GLuint LoadShaders()//colour / shade the object
 }
 
 
-int main(int argc, char* args[]) {
+int main(int argc, char* args[])
+{
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -176,7 +193,8 @@ int main(int argc, char* args[]) {
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
-	if (!InitGL()) {
+	if (!InitGL())
+	{
 		return -1;
 	}
 
@@ -190,7 +208,7 @@ int main(int argc, char* args[]) {
 		SDL_Event incomingEvent;
 		while (SDL_PollEvent(&incomingEvent))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
 		{
-			
+
 			switch (incomingEvent.type)
 			{
 			case SDL_QUIT:
