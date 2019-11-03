@@ -1,6 +1,9 @@
 #include <SDL/SDL.h>
 #include <GLEW/glew.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
 
 static int win(0);
 
@@ -87,37 +90,34 @@ bool CheckShaderCompiled(GLint shader) //check the shader compiled correctly
 	return true;
 }
 
+std::string readFile(const char* filePath) {
+	std::string content;
+	std::ifstream fileStream(filePath, std::ios::in);
+
+	if (!fileStream.is_open()) {
+		std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
+		return "";
+	}
+
+	std::string line = "";
+	while (!fileStream.eof()) {
+		std::getline(fileStream, line);
+		content.append(line + "\n");
+	}
+
+	fileStream.close();
+	return content;
+}
+
+
 GLuint LoadShaders()//colour / shade the object
 {
+	//load in shaders from file
+	std::string vertShaderStr = readFile("../Shaders/vShader.txt");
+	std::string fragShaderStr = readFile("../Shaders/fShader.txt");
 
-	//vshader = vertex shader
-	//fshader = fragment shader
-	const GLchar *vShaderText = "#version 430 core\n\
-						 layout(location = 0) in vec4 vPosition;\n\
-						 out vec2 vertexPos;\n\
-						 void main()\n\
-						 {\n\
-								gl_Position = vPosition;\n\
-								vertexPos = vec2(vPosition.x,vPosition.y);\n\
-						 }";//maybe used for ray generation
-
-	const GLchar *fShaderText = "#version 430 core\n\
-						 out vec4 fColor;\n\
-						 struct Sphere{\n\
-						  vec3 pos;\n\
-						  vec4 Color;\n\
-						  float radius;\n\
-						 };\n\
-						 in vec2 vertexPos;\n\
-						 void main(){\n\
-						 Sphere sph;\n\
-						 sph.pos = vec3(0.0,0.0,1.0);\n\
-						 sph.radius = 1.0f;\n\
-						 sph.color = vec4(1.0,0.0,0.0,1.0);\n\
-						 \n\
-						 \n\
-						 fColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);\n\
-						 }"; //scene layout in here too
+	const GLchar* vShaderText = vertShaderStr.c_str();
+	const GLchar* fShaderText = fragShaderStr.c_str();
 
 
 	GLuint program = glCreateProgram();

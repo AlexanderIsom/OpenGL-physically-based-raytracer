@@ -1,0 +1,19 @@
+#version 430 core
+out vec4 fColor;
+struct Sphere{
+vec3 pos;
+vec4 Color;
+float radius;
+};
+
+
+in vec2 vertexPos;
+void main(){
+Sphere sph;
+sph.pos = vec3(0.0,0.0,1.0);
+sph.radius = 0.5f;
+sph.Color = vec4(1.0,0.0,0.0,1.0);
+
+
+fColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);
+}
