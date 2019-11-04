@@ -1,6 +1,11 @@
 #version 430 core
 out vec4 fColor;
 
+struct Ray{
+vec3 origin;
+vec3 direction;
+};
+
 struct Sphere{
 vec3 pos;
 vec4 Color;
@@ -19,22 +24,91 @@ float dist(vec3 obj1, vec3 obj2){
 return sqrt(pow((obj2.x-obj1.x),2)+pow((obj2.y-obj1.y),2)+pow((obj2.z-obj1.z),2));
 }
 
+float length(vec3 obj){
+return sqrt(pow(obj.x,2)+pow(obj.y,2)+pow(obj.z,2));
+}
+
 in vec3 vertexPos;
 
 void main(){
+bool hit = false;
 Sphere sphere;
 LightSrc light;
 
+vec4 backGroundColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);
 
-sphere.pos = vec3(0.0,0.0,0.0);
+Ray ray;
+
+
+sphere.pos = vec3(0.0,0.0,0.5);
 sphere.radius = 0.5f;
 sphere.Color = vec4(1.0,0.0,0.0,1.0);
 
+
+ray.origin = vertexPos;
+ray.direction = vec3(0.0,0.0,-1.0);
+
 light.pos = vec3(-1.0,0.0,0.0);
 
-if (dist(vertexPos, sphere.pos) < sphere.radius){
-  fColor = sphere.Color;
-}else{
-  fColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);
-  }
+//check to see if the origin of the ray is inside of the sphere
+vec3 pa = sphere.pos - ray.origin;
+float dist = length(pa);
+
+if(dist <= sphere.radius){
+//its inside the sphere, draw blue sphere
+   fColor = vec4(0.0, 0.0,1.0,1.0);
+   return;
 }
+
+//find close point intersection
+vec3 n = normalize(ray.direction);
+
+vec3 closePoint = ray.origin + dot(pa,n)*n;
+
+dist = dot(closePoint,n);
+
+if(dist < 0){
+//object is behind camera, dont draw at all
+hit = false;
+fColor = backGroundColor;
+return;
+}
+
+vec3 dVec = pa - (dot(pa,n)*n);
+dist = length(dVec);
+
+if(dist <= sphere.radius){
+float x;
+hit = true;
+x = sqrt(pow(sphere.radius,2)-pow(dist,2));
+vec3 hitPoint = ray.origin + (dot(pa,n)-x)*n;
+float hitDist = length(ray.origin - hitPoint);
+fColor = vec4(0.0, 1.0,0.0,1.0);
+}else{
+  fColor = backGroundColor;
+  }
+
+  return;
+}
+
+//generate ray
+//normalize direction
+
+//sphere tests
+//test to see if ray is initially inside sphere
+//then test if ray intersects with sphere / close points
+//test if object is behind camera
+//workout distance between close points and origin
+//n = normalized ray
+//pa = sphere pos - ray origin
+//distance vector = pa - dot(pa,n)*n
+//float dist = length(distance vector)
+
+//return actual intersection point
+//if dist < r it collides
+//float x = sqrt(r*r - dist * dist)
+//hit point = ray.origin + (dot(pa,n) - x)*n
+//hit dist = length(ray.origin - hit point)
+
+
+//else didnt hit return black
