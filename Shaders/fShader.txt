@@ -20,13 +20,13 @@ float strength;
 };
 
 //calculates distance
-float dist(vec3 obj1, vec3 obj2){
-return sqrt(pow((obj2.x-obj1.x),2)+pow((obj2.y-obj1.y),2)+pow((obj2.z-obj1.z),2));
-}
+//float dist(vec3 obj1, vec3 obj2){
+//return sqrt(pow((obj2.x-obj1.x),2)+pow((obj2.y-obj1.y),2)+pow((obj2.z-obj1.z),2));
+//}
 
-float length(vec3 obj){
-return sqrt(pow(obj.x,2)+pow(obj.y,2)+pow(obj.z,2));
-}
+//float length(vec3 obj){
+//return sqrt(pow(obj.x,2)+pow(obj.y,2)+pow(obj.z,2));
+//}
 
 in vec3 vertexPos;
 
@@ -40,7 +40,7 @@ vec4 backGroundColor = vec4(vertexPos.x, vertexPos.y,0.0,1.0);
 Ray ray;
 
 
-sphere.pos = vec3(0.0,0.0,0.5);
+sphere.pos = vec3(0.0,0.0, -2.0);
 sphere.radius = 0.5f;
 sphere.Color = vec4(1.0,0.0,0.0,1.0);
 
@@ -57,6 +57,7 @@ float dist = length(pa);
 if(dist <= sphere.radius){
 //its inside the sphere, draw blue sphere
    fColor = vec4(0.0, 0.0,1.0,1.0);
+   hit = false;
    return;
 }
 
@@ -65,13 +66,14 @@ vec3 n = normalize(ray.direction);
 
 vec3 closePoint = ray.origin + dot(pa,n)*n;
 
-dist = dot(closePoint,n);
+//dist = dot(closePoint,n);
 
-if(dist < 0){
+if(dot(pa,n) < 0){
 //object is behind camera, dont draw at all
 hit = false;
-fColor = backGroundColor;
+fColor = vec4(1.0, 0.0,1.0,1.0);
 return;
+//discard;
 }
 
 vec3 dVec = pa - (dot(pa,n)*n);
@@ -81,8 +83,9 @@ if(dist <= sphere.radius){
 float x;
 hit = true;
 x = sqrt(pow(sphere.radius,2)-pow(dist,2));
-vec3 hitPoint = ray.origin + (dot(pa,n)-x)*n;
-float hitDist = length(ray.origin - hitPoint);
+float hitDist = dot(pa,n)-x;
+vec3 hitPoint = ray.origin + (hitDist)*n;
+//float hitDist = length(ray.origin - hitPoint);
 fColor = vec4(0.0, 1.0,0.0,1.0);
 }else{
   fColor = backGroundColor;
