@@ -19,4 +19,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Shaders\fShader.txt" />
+    <Text Include="..\Shaders\vShader.txt" />
+  </ItemGroup>
 </Project>
