@@ -12,6 +12,8 @@ struct Sphere{
 	float radius;
 };
 
+Sphere objects[2];
+
 struct LightSrc{
 	vec3 pos;
 	vec3 direction;
@@ -28,20 +30,31 @@ float facing(vec3 a, vec3 b){
 };
 
 in vec3 vertexPos;
+float closest;
+
+uniform float test_pos;
 
 void main(){
-	bool hit = false;
-	Sphere sphere;
 	LightSrc light;
 
-	vec4 backGroundColor = vec4(0.0, 0.0,0.0,1.0);
+	bool hit;
+
+	hit = false;
+
+	closest = -1;
+
+	vec4 backGroundColor = vec4(0.0, test_pos ,0.0,1.0);
 
 	Ray ray;
 
+	//set up scene
+	objects[0].pos = vec3(-0.25,0.0, -1.0);
+	objects[0].radius = 0.5f;
+	objects[0].Color = vec4(0.0,1.0,0.0,1.0);
 
-	sphere.pos = vec3(0.0,0.0, -1.0);
-	sphere.radius = 0.5f;
-	sphere.Color = vec4(0.0,1.0,0.0,1.0);
+	objects[1].pos = vec3(0.25,0.0, -2.0);
+	objects[1].radius = 0.5f;
+	objects[1].Color = vec4(0.0,1.0,0.0,.0);
 
 	ray.origin = vertexPos;
 	ray.direction = vec3(0.0,0.0,-1.0);
@@ -52,70 +65,81 @@ void main(){
 
 	//check to see if the origin of the ray is inside of the sphere
 
-	vec3 pa = sphere.pos - ray.origin;
-	float dist = length(pa);
-	vec3 n = normalize(ray.direction);
-	float a = dot(pa,n);
+	for (int i = 0; i < objects.length(); i++){
 
-	//its inside the sphere, draw blue sphere
-	if(dist <= sphere.radius){
-	   fColor = vec4(0.0, 0.0,1.0,1.0);
-	   hit = false;
-	   //goto next object
-	   return;
-	}	
+		vec3 pa = objects[i].pos - ray.origin;
+		float dist = length(pa);
+		vec3 n = normalize(ray.direction);
+		float a = dot(pa,n);
 
-	vec3 closePoint = ray.origin + a*n;
+		//its inside the sphere, draw blue sphere
+		if(dist <= objects[i].radius){
+		   fColor = vec4(0.0, 0.0,1.0,1.0);
+		   //goto next object
+		   return;
+		}	
 
-	//dist = dot(closePoint,n);
+		vec3 closePoint = ray.origin + a*n;
 
-	//object is behind camera, dont draw at all
-	if(dot(pa,n) < 0){	
-		fColor = vec4(1.0, 0.0,1.0,1.0);
-		//go to next object
-		return;
-	}
+		//dist = dot(closePoint,n);
 
-	vec3 dVec = pa - (a*n);
-	dist = length(dVec);
+		//object is behind camera, dont draw at all
+		if(dot(pa,n) < 0){	
+			fColor = vec4(1.0, 0.0,1.0,1.0);
+			//go to next object
+			return;
+		}
 
-	if(dist <= sphere.radius){
-		float x;
-		x = sqrt(pow(sphere.radius,2)-pow(dist,2));
-		float hitDist = a-x;
+		vec3 dVec = pa - (a*n);
+		dist = length(dVec);
 
-		//intersection point
-		vec3 intersect = ray.origin + (hitDist)*n;
+		if(dist <= objects[i].radius){
+			
+			hit = true;
+
+			if(closest < 0){
+			closest = dist;
+			}
+
+			if(dist<=closest){
+
+				float x;
+				x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
+				float hitDist = a-x;
+
+				//intersection point
+				vec3 intersect = ray.origin + (hitDist)*n;
 
 
-		//SHADING
-		//get surface normal
+				//SHADING
+				//get surface normal
 
-		vec3 surfaceNormal = normalize(intersect - sphere.pos);
-		light.direction = normalize(light.pos - intersect);
-		vec3 viewDir = normalize(vertexPos - intersect);
-		vec3 midDir = normalize(light.direction + viewDir);
+				vec3 surfaceNormal = normalize(intersect - objects[i].pos);
+				light.direction = normalize(light.pos - intersect);
+				vec3 viewDir = normalize(vertexPos - intersect);
+				vec3 midDir = normalize(light.direction + viewDir);
 
 
-		//phong shading model
-		float shinyness = 10.f;
-		float ambientStr = 0.1f;
+				//phong shading model
+				float shinyness = 10.f;
+				float ambientStr = 0.1f;
 
-		vec4 ambient = vec4(ambientStr);
-		vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+				vec4 ambient = vec4(ambientStr);
+				vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
 
-		vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), shinyness));
+				vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), shinyness));
 
-		vec4 outColor = ambient + diffuse + specular;
+				vec4 outColor = ambient + diffuse + specular;
 
-		outColor = outColor * light.color * sphere.Color * 1.0f;
-
+				outColor = outColor * light.color * objects[i].Color * 1.0f;
 		
-		fColor = outColor / 3.0f;
-	}else{
+				fColor = outColor / 3.0f;
+			}
+		}
+	}
+	if(hit == false){
 		fColor = backGroundColor;
 	}
-
 	return;
 }
 

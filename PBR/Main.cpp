@@ -135,16 +135,16 @@ GLuint LoadShaders()//colour / shade the object
 
 	glAttachShader(program, vShader);
 
-
 	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fShader, 1, &fShaderText, NULL);
+
+	
 	glCompileShader(fShader);
 	if (!CheckShaderCompiled(fShader))
 	{
 		return 0;
 	}
 	glAttachShader(program, fShader);
-
 
 	glLinkProgram(program);
 
@@ -178,7 +178,7 @@ int main(int argc, char* args[])
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);//setting open gl version
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 
 	int windowPosX = 100;
 	int windowPosY = 100;
@@ -202,6 +202,11 @@ int main(int argc, char* args[])
 
 	GLuint shaderProgram = LoadShaders();
 
+	glUseProgram(shaderProgram);
+	GLint test_posLocation = glGetUniformLocation(shaderProgram, "test_pos");
+	GLfloat a = 1.0f;
+	glUniform1f(test_posLocation, 1.0f);
+
 	bool go = true;
 	while (go)
 	{
@@ -215,10 +220,14 @@ int main(int argc, char* args[])
 				go = false;
 				break;
 			}
-		}
+		}	
+
+
+		
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);		
+
 
 		DrawVAOTris(triangleVAO, 6, shaderProgram);
 		SDL_GL_SwapWindow(window);
