@@ -4,6 +4,9 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 static int win(0);
 
@@ -204,18 +207,21 @@ int main(int argc, char* args[])
 
 	glUseProgram(shaderProgram);
 
+	glm::mat4 viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
+	glm::mat4 projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, 680.0f / 480.0f, 0.1f, 100.0f));//build projection matrix
+
 	//passing in view matrix
 	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
-	GLfloat viewMatrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);	
-	glUniformMatrix4fv(view_location, 16, GL_FALSE, viewMatrix);
+	//GLfloat viewMatrix[16];
+	//glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);	
+	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
 
 	//passing in projection matrix
 	GLint projection_location = glGetUniformLocation(shaderProgram, "projectionMatrix");
-	GLfloat projectionMatrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
-	glUniformMatrix4fv(projection_location, 16, GL_FALSE, projectionMatrix);
+	//GLfloat projectionMatrix[16];
+	//glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
 	/*gl a = 1.0f;

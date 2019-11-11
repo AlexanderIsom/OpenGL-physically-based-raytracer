@@ -44,7 +44,7 @@ void main(){
 
 	closest = -1;
 
-	vec4 backGroundColor = vec4(0.0, 0.2 ,0.0,1.0);
+	vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
 	Ray ray;
 
@@ -53,13 +53,13 @@ void main(){
 
 	startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
 	startPoint = inverse(projectionMatrix) * startPoint;
-	startPoint = startPoint / startPoint.w;
 	startPoint = inverse(viewMatrix) * startPoint;
+	startPoint = startPoint / startPoint.w;
 	
 	endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
 	endPoint = inverse(projectionMatrix) * endPoint;
-	endPoint = endPoint / endPoint.w;
 	endPoint = inverse(viewMatrix) * endPoint;
+	endPoint = endPoint / endPoint.w;
 
 	ray.origin = vec3(startPoint);
 	//ray.direction = vec3(0.0,0.0,-1.0);
@@ -92,7 +92,7 @@ void main(){
 		if(dist <= objects[i].radius){
 		   fColor = vec4(0.0, 0.0,1.0,1.0);
 		   //goto next object
-		   return;
+		   continue;
 		}	
 
 		vec3 closePoint = ray.origin + a*n;
