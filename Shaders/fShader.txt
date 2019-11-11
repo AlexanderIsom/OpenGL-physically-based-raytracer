@@ -12,6 +12,14 @@ struct Sphere{
 	float radius;
 };
 
+struct hitObject{
+	vec3 pos;
+	vec4 Color;
+	float radius;
+	float dist;
+	bool hit;
+};
+
 Sphere objects[2];
 
 struct LightSrc{
@@ -30,7 +38,7 @@ float facing(vec3 a, vec3 b){
 };
 
 in vec3 vertexPos;
-float closest;
+hitObject hitObj;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
@@ -40,9 +48,10 @@ void main(){
 
 	bool hit;
 
-	hit = false;
+	hitObj.hit = false;
+	hitObj.dist = -1.0f;
 
-	closest = -1;
+	hit = false;
 
 	vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
@@ -52,85 +61,81 @@ void main(){
 	vec4 endPoint;
 
 	startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
-	startPoint = inverse(projectionMatrix) * startPoint;
-	startPoint = inverse(viewMatrix) * startPoint;
+	startPoint = projectionMatrix * startPoint;
+	startPoint = viewMatrix * startPoint;
 	startPoint = startPoint / startPoint.w;
 	
 	endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
-	endPoint = inverse(projectionMatrix) * endPoint;
-	endPoint = inverse(viewMatrix) * endPoint;
+	endPoint = projectionMatrix * endPoint;
+	endPoint = viewMatrix * endPoint;
 	endPoint = endPoint / endPoint.w;
 
 	ray.origin = vec3(startPoint);
-	//ray.direction = vec3(0.0,0.0,-1.0);
 	ray.direction = vec3(normalize(endPoint - startPoint));
 
 
 	//set up scene
-	objects[0].pos = vec3(-0.25,0.0, -1.0);
-	objects[0].radius = 0.5f;
+	objects[0].pos = vec3(0.0,0.0, -1.0);
+	objects[0].radius = 0.1f;
 	objects[0].Color = vec4(0.0,1.0,0.0,1.0);
 
-	objects[1].pos = vec3(0.25,0.0, -2.0);
-	objects[1].radius = 0.5f;
+	objects[1].pos = vec3(0.3,0.0, -2.0);
+	objects[1].radius = 0.1f;
 	objects[1].Color = vec4(0.0,1.0,0.0,.0);	
 
 	light.pos = vec3(-10.0,1.0,10.0);
 	light.color = vec4(1.0);
 
-
-	//check to see if the origin of the ray is inside of the sphere
+	vec3 n = normalize(ray.direction);
 
 	for (int i = 0; i < objects.length(); i++){
 
 		vec3 pa = objects[i].pos - ray.origin;
 		float dist = length(pa);
-		vec3 n = normalize(ray.direction);
 		float a = dot(pa,n);
 
 		//its inside the sphere, draw blue sphere
 		if(dist <= objects[i].radius){
 		   fColor = vec4(0.0, 0.0,1.0,1.0);
+		   
 		   //goto next object
 		   continue;
 		}	
-
-		vec3 closePoint = ray.origin + a*n;
-
-		//dist = dot(closePoint,n);
 
 		//object is behind camera, dont draw at all
 		if(dot(pa,n) < 0){	
 			fColor = vec4(1.0, 0.0,1.0,1.0);
 			//go to next object
-			return;
+			continue;
 		}
 
 		vec3 dVec = pa - (a*n);
 		dist = length(dVec);
 
 		if(dist <= objects[i].radius){
-			
-			hit = true;
+			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
+			float hitDist = a-x;
 
-			if(closest < 0){
-			closest = dist;
+			if(hitDist < hitObj.dist || hitObj.dist < 0 && hitDist != hitObj.dist)
+			{
+				hitObj.pos = objects[i].pos;
+				hitObj.radius = objects[i].radius;
+				hitObj.Color = objects[i].Color;
+				hitObj.dist = hitDist;
+				hitObj.hit = true;
 			}
+		}
+	}
 
-			if(dist<=closest){
-
-				float x;
-				x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
-				float hitDist = a-x;
+	if(hitObj.hit == true){	
 
 				//intersection point
-				vec3 intersect = ray.origin + (hitDist)*n;
-
+				vec3 intersect = ray.origin + (hitObj.dist)*n;
 
 				//SHADING
 				//get surface normal
 
-				vec3 surfaceNormal = normalize(intersect - objects[i].pos);
+				vec3 surfaceNormal = normalize(intersect - hitObj.pos);
 				light.direction = normalize(light.pos - intersect);
 				vec3 viewDir = normalize(vertexPos - intersect);
 				vec3 midDir = normalize(light.direction + viewDir);
@@ -147,17 +152,12 @@ void main(){
 
 				vec4 outColor = ambient + diffuse + specular;
 
-				outColor = outColor * light.color * objects[i].Color * 1.0f;
+				outColor = outColor * light.color * hitObj.Color * 1.0f;
 		
 				fColor = outColor / 3.0f;
 			}
-		}
-	}
-	if(hit == false){
+	if(hitObj.hit == false){
 		fColor = backGroundColor;
 	}
 	return;
 }
-
-//TODO
-//Multiple spheres in a list, one partially behind the other, try get shadows

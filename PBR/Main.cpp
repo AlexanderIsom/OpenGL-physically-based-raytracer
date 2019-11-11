@@ -186,7 +186,7 @@ int main(int argc, char* args[])
 	int windowPosX = 100;
 	int windowPosY = 100;
 	int windowWidth = 640;
-	int windowHeight = 640;
+	int windowHeight = 480;
 
 
 	//using sdl to prep a window then launching opengl within it
@@ -207,20 +207,16 @@ int main(int argc, char* args[])
 
 	glUseProgram(shaderProgram);
 
+	//create matrixes
 	glm::mat4 viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
-	glm::mat4 projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, 680.0f / 480.0f, 0.1f, 100.0f));//build projection matrix
+	glm::mat4 projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f));//build projection matrix
 
-	//passing in view matrix
+
+	//pass them into shader
 	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
-	//GLfloat viewMatrix[16];
-	//glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);	
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-
-	//passing in projection matrix
 	GLint projection_location = glGetUniformLocation(shaderProgram, "projectionMatrix");
-	//GLfloat projectionMatrix[16];
-	//glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
@@ -240,10 +236,7 @@ int main(int argc, char* args[])
 				go = false;
 				break;
 			}
-		}	
-
-
-		
+		}		
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);		
