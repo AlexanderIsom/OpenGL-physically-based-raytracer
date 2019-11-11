@@ -32,7 +32,8 @@ float facing(vec3 a, vec3 b){
 in vec3 vertexPos;
 float closest;
 
-uniform float test_pos;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 void main(){
 	LightSrc light;
@@ -43,9 +44,27 @@ void main(){
 
 	closest = -1;
 
-	vec4 backGroundColor = vec4(0.0, test_pos ,0.0,1.0);
+	vec4 backGroundColor = vec4(0.0, 0.2 ,0.0,1.0);
 
 	Ray ray;
+
+	vec4 startPoint;
+	vec4 endPoint;
+
+	startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
+	startPoint = inverse(projectionMatrix) * startPoint;
+	startPoint = startPoint / startPoint.w;
+	startPoint = inverse(viewMatrix) * startPoint;
+	
+	endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
+	endPoint = inverse(projectionMatrix) * endPoint;
+	endPoint = endPoint / endPoint.w;
+	endPoint = inverse(viewMatrix) * endPoint;
+
+	ray.origin = vec3(startPoint);
+	//ray.direction = vec3(0.0,0.0,-1.0);
+	ray.direction = vec3(normalize(endPoint - startPoint));
+
 
 	//set up scene
 	objects[0].pos = vec3(-0.25,0.0, -1.0);
@@ -54,10 +73,7 @@ void main(){
 
 	objects[1].pos = vec3(0.25,0.0, -2.0);
 	objects[1].radius = 0.5f;
-	objects[1].Color = vec4(0.0,1.0,0.0,.0);
-
-	ray.origin = vertexPos;
-	ray.direction = vec3(0.0,0.0,-1.0);
+	objects[1].Color = vec4(0.0,1.0,0.0,.0);	
 
 	light.pos = vec3(-10.0,1.0,10.0);
 	light.color = vec4(1.0);

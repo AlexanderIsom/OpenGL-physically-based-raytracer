@@ -203,9 +203,23 @@ int main(int argc, char* args[])
 	GLuint shaderProgram = LoadShaders();
 
 	glUseProgram(shaderProgram);
-	GLint test_posLocation = glGetUniformLocation(shaderProgram, "test_pos");
-	GLfloat a = 1.0f;
-	glUniform1f(test_posLocation, 1.0f);
+
+	//passing in view matrix
+	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
+	GLfloat viewMatrix[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);	
+	glUniformMatrix4fv(view_location, 16, GL_FALSE, viewMatrix);
+
+
+	//passing in projection matrix
+	GLint projection_location = glGetUniformLocation(shaderProgram, "projectionMatrix");
+	GLfloat projectionMatrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+	glUniformMatrix4fv(projection_location, 16, GL_FALSE, projectionMatrix);
+
+
+	/*gl a = 1.0f;
+	glUniform1f(test_posLocation, 1.0f);*/
 
 	bool go = true;
 	while (go)
