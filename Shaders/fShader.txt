@@ -11,7 +11,9 @@ struct Sphere{
 	vec4 Color;
 	float radius;
 
-
+	void test(){
+	return;
+	}
 };
 
 struct hitObject{
@@ -79,7 +81,7 @@ void main(){
 	vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
 	Ray ray;
-
+	//generate ray from screen coords
 	ray = genRay(vec4(vertexPos.x,vertexPos.y,-1,1), vec4(vertexPos.x,vertexPos.y,1,1));
 
 	//set up scene
@@ -90,6 +92,8 @@ void main(){
 	objects[1].pos = vec3(0.3,0.0, -2.0);
 	objects[1].radius = 0.1f;
 	objects[1].Color = vec4(0.0,1.0,0.0,.0);	
+
+	objects[1].test();
 
 	light.pos = vec3(-10.0,1.0,10.0);
 	light.color = vec4(1.0);
