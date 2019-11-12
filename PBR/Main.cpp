@@ -223,9 +223,21 @@ int main(int argc, char* args[])
 	/*gl a = 1.0f;
 	glUniform1f(test_posLocation, 1.0f);*/
 
+	unsigned int lastTime = 0, currentTime;
+	int frames = 0;
+
 	bool go = true;
 	while (go)
 	{
+		frames++;
+		currentTime = SDL_GetTicks();
+
+		if (currentTime >= lastTime + 1000) {
+			printf("Fps: %d \n", frames);
+			lastTime = currentTime;
+			frames = 0;
+		}
+
 		SDL_Event incomingEvent;
 		while (SDL_PollEvent(&incomingEvent))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
 		{

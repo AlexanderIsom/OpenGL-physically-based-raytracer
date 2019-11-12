@@ -10,6 +10,8 @@ struct Sphere{
 	vec3 pos;
 	vec4 Color;
 	float radius;
+
+
 };
 
 struct hitObject{
@@ -37,11 +39,32 @@ float facing(vec3 a, vec3 b){
 	return 0.0f;
 };
 
+
+
 in vec3 vertexPos;
 hitObject hitObj;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+
+Ray genRay(vec4 startPoint, vec4 endPoint){
+
+	Ray rtn;
+
+	startPoint = projectionMatrix * startPoint;
+	startPoint = viewMatrix * startPoint;
+	startPoint = startPoint / startPoint.w;
+	
+	endPoint = projectionMatrix * endPoint;
+	endPoint = viewMatrix * endPoint;
+	endPoint = endPoint / endPoint.w;
+
+	rtn.origin = vec3(startPoint);
+	rtn.direction = vec3(normalize(endPoint - startPoint));
+
+	return rtn;
+
+};
 
 void main(){
 	LightSrc light;
@@ -57,22 +80,7 @@ void main(){
 
 	Ray ray;
 
-	vec4 startPoint;
-	vec4 endPoint;
-
-	startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
-	startPoint = projectionMatrix * startPoint;
-	startPoint = viewMatrix * startPoint;
-	startPoint = startPoint / startPoint.w;
-	
-	endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
-	endPoint = projectionMatrix * endPoint;
-	endPoint = viewMatrix * endPoint;
-	endPoint = endPoint / endPoint.w;
-
-	ray.origin = vec3(startPoint);
-	ray.direction = vec3(normalize(endPoint - startPoint));
-
+	ray = genRay(vec4(vertexPos.x,vertexPos.y,-1,1), vec4(vertexPos.x,vertexPos.y,1,1));
 
 	//set up scene
 	objects[0].pos = vec3(0.0,0.0, -1.0);
@@ -141,7 +149,7 @@ void main(){
 				vec3 midDir = normalize(light.direction + viewDir);
 
 
-				//phong shading model
+				//phong shading model // needs to be updated with pbr
 				float shinyness = 10.f;
 				float ambientStr = 0.1f;
 
@@ -150,7 +158,7 @@ void main(){
 
 				vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), shinyness));
 
-				vec4 outColor = ambient + diffuse + specular;
+				vec4 outColor = ambient + diffuse + specular; // reflectivity
 
 				outColor = outColor * light.color * hitObj.Color * 1.0f;
 		
