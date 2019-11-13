@@ -233,7 +233,7 @@ int main(int argc, char* args[])
 		currentTime = SDL_GetTicks();
 
 		if (currentTime >= lastTime + 1000) {
-			printf("Fps: %d \n", frames);
+			//printf("Fps: %d \n", frames);
 			lastTime = currentTime;
 			frames = 0;
 		}

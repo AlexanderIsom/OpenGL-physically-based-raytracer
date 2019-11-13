@@ -1,19 +1,15 @@
 #version 430 core
 out vec4 fColor;
 
+in vec3 vertexPos;
+
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
 struct Ray{
 	vec3 origin;
 	vec3 direction;
-};
-
-struct Sphere{
-	vec3 pos;
-	vec4 Color;
-	float radius;
-
-	void test(){
-	return;
-	}
+	vec3 n;
 };
 
 struct hitObject{
@@ -22,6 +18,17 @@ struct hitObject{
 	float radius;
 	float dist;
 	bool hit;
+};
+
+hitObject hitObj;
+vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
+
+struct Sphere
+{
+	vec3 pos;
+	vec4 Color;
+	float radius;
+	
 };
 
 Sphere objects[2];
@@ -42,16 +49,57 @@ float facing(vec3 a, vec3 b){
 };
 
 
+void rayIntersect(Sphere sph, Ray ray)
+{
+	vec3 n = ray.n;
+	vec3 pa = sph.pos - ray.origin;
+	float dist = length(pa);
+	float a = dot(pa,n);
 
-in vec3 vertexPos;
-hitObject hitObj;
+	//its inside the sphere, draw blue sphere
+	if(dist <= sph.radius)
+	{
+		fColor = vec4(0.0, 0.0,1.0,1.0);
+		   
+		//goto next object
+		return;
+	}	
 
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+	//object is behind camera, dont draw at all
+	if(dot(pa,n) < 0)
+	{	
+		fColor = vec4(1.0, 0.0,1.0,1.0);
+		//go to next object
+		return;
+	}
 
-Ray genRay(vec4 startPoint, vec4 endPoint){
+	vec3 dVec = pa - (a*n);
+	dist = length(dVec);
 
-	Ray rtn;
+	if(dist <= sph.radius)
+	{
+		float x = sqrt(pow(sph.radius,2)-pow(dist,2));
+		float hitDist = a-x;
+
+		if(hitDist < hitObj.dist || hitObj.dist < 0 && hitDist != hitObj.dist)
+		{
+			hitObj.pos = sph.pos;
+			hitObj.radius = sph.radius;
+			hitObj.Color = sph.Color;
+			hitObj.dist = hitDist;
+			hitObj.hit = true;
+		}
+	}
+
+return;
+}
+
+
+vec4 genRay(vec4 startPoint, vec4 endPoint, LightSrc light){
+
+	Ray ray;
+
+	vec4 rtnColor;
 
 	startPoint = projectionMatrix * startPoint;
 	startPoint = viewMatrix * startPoint;
@@ -61,10 +109,51 @@ Ray genRay(vec4 startPoint, vec4 endPoint){
 	endPoint = viewMatrix * endPoint;
 	endPoint = endPoint / endPoint.w;
 
-	rtn.origin = vec3(startPoint);
-	rtn.direction = vec3(normalize(endPoint - startPoint));
+	ray.origin = vec3(startPoint);
+	ray.direction = vec3(normalize(endPoint - startPoint));
 
-	return rtn;
+	ray.n = normalize(ray.direction);
+
+	for (int i = 0; i < objects.length(); i++)
+	{		
+		rayIntersect(objects[i], ray);
+	}
+	
+	if(hitObj.hit == true){	
+
+			//intersection point
+			vec3 intersect = ray.origin + (hitObj.dist)*ray.n;
+
+			//SHADING
+			//get surface normal
+
+			vec3 surfaceNormal = normalize(intersect - hitObj.pos);
+			light.direction = normalize(light.pos - intersect);
+			vec3 viewDir = normalize(vertexPos - intersect);
+			vec3 midDir = normalize(light.direction + viewDir);
+
+
+			//phong shading model // needs to be updated with pbr
+			float shinyness = 10.f;
+			float ambientStr = 0.1f;
+
+			vec4 ambient = vec4(ambientStr);
+			vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+
+			vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), shinyness));
+
+			vec4 outColor = ambient + diffuse + specular; // reflectivity
+
+			outColor = outColor * light.color * hitObj.Color * 1.0f;
+		
+			rtnColor = outColor / 3.0f;
+		}
+	if(hitObj.hit == false){
+		rtnColor = backGroundColor;
+	}
+
+
+	return rtnColor;
 
 };
 
@@ -76,13 +165,9 @@ void main(){
 	hitObj.hit = false;
 	hitObj.dist = -1.0f;
 
-	hit = false;
+	hit = false;	
 
-	vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
-
-	Ray ray;
 	//generate ray from screen coords
-	ray = genRay(vec4(vertexPos.x,vertexPos.y,-1,1), vec4(vertexPos.x,vertexPos.y,1,1));
 
 	//set up scene
 	objects[0].pos = vec3(0.0,0.0, -1.0);
@@ -93,83 +178,10 @@ void main(){
 	objects[1].radius = 0.1f;
 	objects[1].Color = vec4(0.0,1.0,0.0,.0);	
 
-	objects[1].test();
-
 	light.pos = vec3(-10.0,1.0,10.0);
 	light.color = vec4(1.0);
 
-	vec3 n = normalize(ray.direction);
-
-	for (int i = 0; i < objects.length(); i++){
-
-		vec3 pa = objects[i].pos - ray.origin;
-		float dist = length(pa);
-		float a = dot(pa,n);
-
-		//its inside the sphere, draw blue sphere
-		if(dist <= objects[i].radius){
-		   fColor = vec4(0.0, 0.0,1.0,1.0);
-		   
-		   //goto next object
-		   continue;
-		}	
-
-		//object is behind camera, dont draw at all
-		if(dot(pa,n) < 0){	
-			fColor = vec4(1.0, 0.0,1.0,1.0);
-			//go to next object
-			continue;
-		}
-
-		vec3 dVec = pa - (a*n);
-		dist = length(dVec);
-
-		if(dist <= objects[i].radius){
-			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
-			float hitDist = a-x;
-
-			if(hitDist < hitObj.dist || hitObj.dist < 0 && hitDist != hitObj.dist)
-			{
-				hitObj.pos = objects[i].pos;
-				hitObj.radius = objects[i].radius;
-				hitObj.Color = objects[i].Color;
-				hitObj.dist = hitDist;
-				hitObj.hit = true;
-			}
-		}
-	}
-
-	if(hitObj.hit == true){	
-
-				//intersection point
-				vec3 intersect = ray.origin + (hitObj.dist)*n;
-
-				//SHADING
-				//get surface normal
-
-				vec3 surfaceNormal = normalize(intersect - hitObj.pos);
-				light.direction = normalize(light.pos - intersect);
-				vec3 viewDir = normalize(vertexPos - intersect);
-				vec3 midDir = normalize(light.direction + viewDir);
-
-
-				//phong shading model // needs to be updated with pbr
-				float shinyness = 10.f;
-				float ambientStr = 0.1f;
-
-				vec4 ambient = vec4(ambientStr);
-				vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
-
-				vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), shinyness));
-
-				vec4 outColor = ambient + diffuse + specular; // reflectivity
-
-				outColor = outColor * light.color * hitObj.Color * 1.0f;
-		
-				fColor = outColor / 3.0f;
-			}
-	if(hitObj.hit == false){
-		fColor = backGroundColor;
-	}
+	fColor = genRay(vec4(vertexPos.x,vertexPos.y,-1,1), vec4(vertexPos.x,vertexPos.y,1,1), light);
+	
 	return;
 }
