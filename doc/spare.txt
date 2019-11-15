@@ -14,11 +14,7 @@ if(rtn.dist < hitObj.dist || hitObj.dist < 0 && rtn.dist != hitObj.dist)
 
 
 
-
-
-
-
-			vec4 genRay(vec3 start, vec3 direction, hitObject sph){
+vec4 genRay(vec3 start, vec3 direction, hitObject sph){
 
 	Ray ray;
 

@@ -6,6 +6,8 @@ in vec3 vertexPos;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
+
+
 int id;
 
 struct Ray{
@@ -16,7 +18,7 @@ struct Ray{
 
 struct hitObject{
 	vec3 pos;
-	vec4 Color;
+	vec4 color;
 	float radius;
 	float shinyness;
 	float dist;
@@ -25,10 +27,12 @@ struct hitObject{
 
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
+vec4 genRay(vec4 startPoint, vec4 endPoint);
+
 struct Sphere
 {
 	vec3 pos;
-	vec4 Color;
+	vec4 color;
 	float radius;
 	float shinyness;
 	
@@ -59,7 +63,6 @@ hitObject rayIntersect(Sphere sph, Ray ray)
 	hitObject rtn;
 	rtn.hit = false;
 	rtn.dist = -1.0f;
-	rtn.Color = backGroundColor;
 
 	vec3 n = ray.n;
 	vec3 pa = sph.pos - ray.origin;
@@ -69,7 +72,7 @@ hitObject rayIntersect(Sphere sph, Ray ray)
 	//its inside the sphere, draw blue sphere
 	if(dist <= sph.radius)
 	{
-		rtn.Color = vec4(0.0, 0.0,1.0,1.0);
+		rtn.color = vec4(0.0, 0.0,1.0,1.0);
 		   
 		//goto next object
 		rtn.hit = false;
@@ -79,7 +82,7 @@ hitObject rayIntersect(Sphere sph, Ray ray)
 	//object is behind camera, dont draw at all
 	if(dot(pa,n) < 0)
 	{	
-		rtn.Color = vec4(1.0, 0.0,1.0,1.0);
+		rtn.color = vec4(1.0, 0.0,1.0,1.0);
 		//go to next object
 		rtn.hit = false;
 		return rtn;
@@ -95,7 +98,7 @@ hitObject rayIntersect(Sphere sph, Ray ray)
 		rtn.pos = sph.pos;
 		rtn.radius = sph.radius;
 		rtn.shinyness = sph.shinyness;
-		rtn.Color = sph.Color;
+		rtn.color = sph.color;
 		rtn.dist = hitDist;
 		rtn.hit = true;
 	}
@@ -107,12 +110,11 @@ void addObject(vec3 P, float R, vec4 C, float shinyness){
 	
 	objects[id].pos = P;
 	objects[id].radius = R;
-	objects[id].Color = C;
+	objects[id].color = C;
 	objects[id].shinyness = shinyness;
 
 	id++;
 }
-
 
 vec4 genRay(vec4 startPoint, vec4 endPoint){
 
@@ -143,12 +145,12 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 		rtn = rayIntersect(objects[i], ray);
 
 		if(rtn.hit == true){
-			rtnColor = rtn.Color;
+			rtnColor = rtn.color;
 			if(rtn.dist < hitObj.dist || hitObj.dist < 0 && rtn.dist != hitObj.dist)
 			{		
 				hitObj.pos = rtn.pos;
 				hitObj.radius = rtn.radius;
-				hitObj.Color = rtn.Color;
+				hitObj.color = rtn.color;
 				hitObj.dist = rtn.dist;
 				hitObj.shinyness = rtn.shinyness;	
 				hitObj.hit = true;
@@ -157,7 +159,7 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 	}
 
 	if(hitObj.hit == true){	
-		//if shiny
+		//if shiny spawn new ray
 
 		//intersection point
 		vec3 intersect = ray.origin + (hitObj.dist)*ray.n;
@@ -167,14 +169,15 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 
 		if(hitObj.shinyness > 100.0f)
 		{
-			//vec3 newRayDir = (-ray.direction)+2*(dot(ray.direction,surfaceNormal))*surfaceNormal;
-			//rtnColor = genRay(intersect, newRayDir, hitObj);
-
+			vec3 newRayDir = (-ray.direction)+2*(dot(ray.direction,surfaceNormal))*surfaceNormal;
+			vec4 start = vec4(intersect+(newRayDir/10),1.0);
+			vec4 end = vec4(intersect+newRayDir,1.0);
+			rtnColor = genRay(start,end);
 		}
 		else
 		{		
 
-			//SHADING
+			//SHADING Phong
 			
 			light.direction = normalize(light.pos - intersect);
 			vec3 viewDir = normalize(vertexPos - intersect);
@@ -192,7 +195,7 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 
 			vec4 outColor = ambient + diffuse + specular; // reflectivity
 
-			outColor = outColor * light.color * hitObj.Color * 1.0f;
+			outColor = outColor * light.color * hitObj.color * 1.0f;
 		
 			rtnColor = outColor / 3.0f;
 		}
@@ -203,7 +206,6 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 
 	return rtnColor;
 };
-
 
 
 //overloaded funciton to gen ray with passing in the object it was spawned from. 
