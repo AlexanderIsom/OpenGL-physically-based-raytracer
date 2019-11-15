@@ -16,6 +16,14 @@ struct Ray{
 	vec3 n;
 };
 
+struct rtnRay{
+	float shinyness;
+	vec4 start;
+	vec4 end;
+	vec4 color;
+	bool hit;
+};
+
 struct hitObject{
 	vec3 pos;
 	vec4 color;
@@ -27,7 +35,7 @@ struct hitObject{
 
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
-vec4 genRay(vec4 startPoint, vec4 endPoint);
+rtnRay genRay(vec4 startPoint, vec4 endPoint);
 
 struct Sphere
 {
@@ -116,9 +124,11 @@ void addObject(vec3 P, float R, vec4 C, float shinyness){
 	id++;
 }
 
-vec4 genRay(vec4 startPoint, vec4 endPoint){
+rtnRay genRay(vec4 startPoint, vec4 endPoint){
 
 	Ray ray;
+
+	rtnRay rtn_ray;
 
 	vec4 rtnColor;
 
@@ -145,7 +155,6 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 		rtn = rayIntersect(objects[i], ray);
 
 		if(rtn.hit == true){
-			rtnColor = rtn.color;
 			if(rtn.dist < hitObj.dist || hitObj.dist < 0 && rtn.dist != hitObj.dist)
 			{		
 				hitObj.pos = rtn.pos;
@@ -161,50 +170,52 @@ vec4 genRay(vec4 startPoint, vec4 endPoint){
 	if(hitObj.hit == true){	
 		//if shiny spawn new ray
 
+		rtn_ray.hit = true;
+
 		//intersection point
 		vec3 intersect = ray.origin + (hitObj.dist)*ray.n;
 
 		//get surface normal
 		vec3 surfaceNormal = normalize(intersect - hitObj.pos);
 
-		if(hitObj.shinyness > 100.0f)
+		if(hitObj.shinyness > 40.0f)
 		{
+		//if shinyness store new direction in return objects start and return 
 			vec3 newRayDir = (-ray.direction)+2*(dot(ray.direction,surfaceNormal))*surfaceNormal;
-			vec4 start = vec4(intersect+(newRayDir/10),1.0);
-			vec4 end = vec4(intersect+newRayDir,1.0);
-			rtnColor = genRay(start,end);
+			rtn_ray.start = vec4(intersect+(newRayDir/10),1.0);
+			rtn_ray.end = vec4(intersect+newRayDir,1.0);
 		}
-		else
-		{		
 
-			//SHADING Phong
+		//SHADING Phong
 			
-			light.direction = normalize(light.pos - intersect);
-			vec3 viewDir = normalize(vertexPos - intersect);
-			vec3 midDir = normalize(light.direction + viewDir);
+		light.direction = normalize(light.pos - intersect);
+		vec3 viewDir = normalize(vertexPos - intersect);
+		vec3 midDir = normalize(light.direction + viewDir);
 
 
-			//phong shading model // needs to be updated with pbr
+		//phong shading model // needs to be updated with pbr
 			
-			float ambientStr = 0.1f;
+		float ambientStr = 0.1f;
 
-			vec4 ambient = vec4(ambientStr);
-			vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+		vec4 ambient = vec4(ambientStr);
+		vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
 
-			vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), hitObj.shinyness));
+		vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), hitObj.shinyness));
 
-			vec4 outColor = ambient + diffuse + specular; // reflectivity
+		vec4 outColor = ambient + diffuse + specular; // reflectivity
 
-			outColor = outColor * light.color * hitObj.color * 1.0f;
+		outColor = outColor * light.color * hitObj.color * 1.0f;
 		
-			rtnColor = outColor / 3.0f;
-		}
+		rtn_ray.color = outColor / 3.0f;
+		rtn_ray.shinyness = hitObj.shinyness;
+		
 	}
 	if(hitObj.hit == false){
-		rtnColor = backGroundColor;
+		rtn_ray.color = backGroundColor;
+		rtn_ray.hit = false;
 	}
 
-	return rtnColor;
+	return rtn_ray;
 };
 
 
@@ -223,7 +234,42 @@ void main(){
 	light.pos = vec3(-10.0,1.0,10.0);
 	light.color = vec4(1.0);
 
-	fColor = genRay(vec4(vertexPos.x,vertexPos.y,-1,1), vec4(vertexPos.x,vertexPos.y,1,1));
+	//if hit object is shiny then gen new ray and i--; else fColor = hitObject color;
+	
+	rtnRay rtn_ray;
+	
+	vec4 start;
+	vec4 end;
+	int bounceCounter = 10;
+	start = vec4(vertexPos.x,vertexPos.y,-1,1);
+	end = vec4(vertexPos.x,vertexPos.y,1,1);
+	
+
+	for(int i = 0; i < 1; i++){
+	//genRay must return a rayObject;
+		rtn_ray = genRay(start, end);
+
+		if(rtn_ray.hit == true && rtn_ray.shinyness > 40.0f)
+		{
+			fColor = rtn_ray.color;
+			if(bounceCounter <= 0) //just get the color of the last reflected object and then display it
+			{
+				continue;
+			}
+			bounceCounter--;
+			i--;
+			start = rtn_ray.start;
+			end = rtn_ray.end;
+		//rtn. intersect point, and ray direction are required to find start point and direction, add direction /10 to start as a offset to ensure the start doest
+		//collide with the original object, add the whole direction to start to get the end point and pass it back into the ray
+			continue;
+		}else if(rtn_ray.hit == true){
+			fColor = rtn_ray.color;
+			continue;
+		}
+		//if it doesnt hit or hits and its a normal object, distplay the color
+		//fColor = rtn_ray.color;
+	}
 	
 	return;
 }
