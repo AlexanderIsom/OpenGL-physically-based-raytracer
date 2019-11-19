@@ -150,6 +150,7 @@ rtnRay genRay(vec4 startPoint, vec4 endPoint){
 
 	ray.n = normalize(ray.direction);
 	
+	//put this into its own function
 	for (int i = 0; i < objects.length(); i++)
 	{		
 		rtn = rayIntersect(objects[i], ray);
@@ -182,7 +183,7 @@ rtnRay genRay(vec4 startPoint, vec4 endPoint){
 		{
 		//if shinyness store new direction in return objects start and return 
 			vec3 newRayDir = (-ray.direction)+2*(dot(ray.direction,surfaceNormal))*surfaceNormal;
-			rtn_ray.start = vec4(intersect+(newRayDir/10),1.0);
+			rtn_ray.start = vec4(intersect+(newRayDir*0.0001),1.0);
 			rtn_ray.end = vec4(intersect+newRayDir,1.0);
 		}
 
@@ -243,6 +244,13 @@ void main(){
 	int bounceCounter = 10;
 	start = vec4(vertexPos.x,vertexPos.y,-1,1);
 	end = vec4(vertexPos.x,vertexPos.y,1,1);
+
+	//make tracer funcitons.
+	//ray gen for ncd
+	//ray gen for reflections which are in world space
+	//intersect and closest obj
+	//shade
+	//loop for reflections
 	
 
 	for(int i = 0; i < 1; i++){
@@ -268,7 +276,7 @@ void main(){
 			continue;
 		}
 		//if it doesnt hit or hits and its a normal object, distplay the color
-		//fColor = rtn_ray.color;
+		fColor = rtn_ray.color;
 	}
 	
 	return;
