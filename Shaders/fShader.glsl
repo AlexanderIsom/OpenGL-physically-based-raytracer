@@ -205,6 +205,8 @@ Ray genRay(vec3 vertexPos){
 	ray.origin = vec3(startPoint);
 	ray.direction = vec3(normalize(endPoint - startPoint));
 
+	//test
+
 	return ray;
 
 //	ray.n = normalize(ray.direction);
