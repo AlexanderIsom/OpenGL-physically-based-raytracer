@@ -116,8 +116,8 @@ std::string readFile(const char* filePath) {
 GLuint LoadShaders()//colour / shade the object
 {
 	//load in shaders from file
-	std::string vertShaderStr = readFile("../Shaders/vShader.txt");
-	std::string fragShaderStr = readFile("../Shaders/fShader.txt");
+	std::string vertShaderStr = readFile("../Shaders/vShader.glsl");
+	std::string fragShaderStr = readFile("../Shaders/fShader.glsl");
 
 	const GLchar* vShaderText = vertShaderStr.c_str();
 	const GLchar* fShaderText = fragShaderStr.c_str();

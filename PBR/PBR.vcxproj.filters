@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Shaders\fShader.txt" />
-    <Text Include="..\Shaders\vShader.txt" />
+    <Text Include="..\Shaders\vShader.glsl" />
+    <Text Include="..\Shaders\fShader.glsl" />
   </ItemGroup>
 </Project>

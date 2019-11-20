@@ -140,8 +140,8 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Shaders\fShader.txt" />
-    <Text Include="..\Shaders\vShader.txt" />
+    <Text Include="..\Shaders\fShader.glsl" />
+    <Text Include="..\Shaders\vShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
