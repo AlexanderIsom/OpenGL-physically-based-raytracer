@@ -141,7 +141,7 @@ GLuint LoadShaders()//colour / shade the object
 	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fShader, 1, &fShaderText, NULL);
 
-	
+
 	glCompileShader(fShader);
 	if (!CheckShaderCompiled(fShader))
 	{
@@ -169,6 +169,37 @@ GLuint LoadShaders()//colour / shade the object
 	return program;
 }
 
+bool Keys[322];
+glm::mat4 viewMatrix;
+glm::mat4 projectionMatrix;
+GLuint shaderProgram;
+
+void inputHandeler() {
+	glUseProgram(shaderProgram);
+
+	if (Keys[SDLK_w]) { // move forward
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -0.0001));
+	}
+	if (Keys[SDLK_a]) { // move left
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(-0.0001, 0.0, 0.0));
+	}
+	if (Keys[SDLK_s]) { // move back
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, 0.0001));
+	}
+	if (Keys[SDLK_d]) { // move right
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0001, 0.0, 0.0));
+	}
+	if (Keys[SDLK_q]) { // rotate
+		viewMatrix = glm::rotate(viewMatrix,glm::radians(0.01f), glm::vec3(0.0, 1.0, 0.0));
+	}
+	if (Keys[SDLK_e]) { // rotate
+		viewMatrix = glm::rotate(viewMatrix, glm::radians(-0.01f), glm::vec3(0.0, 1.0, 0.0));
+	}
+
+	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
+	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+}
+
 
 int main(int argc, char* args[])
 {
@@ -192,7 +223,7 @@ int main(int argc, char* args[])
 	//using sdl to prep a window then launching opengl within it
 	SDL_Window* window = SDL_CreateWindow("OpenGL", windowPosX, windowPosY, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
@@ -203,13 +234,13 @@ int main(int argc, char* args[])
 
 	GLuint triangleVAO = CreateTriangleVAO();
 
-	GLuint shaderProgram = LoadShaders();
+	shaderProgram = LoadShaders();
 
 	glUseProgram(shaderProgram);
 
 	//create matrixes
-	glm::mat4 viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
-	glm::mat4 projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f));//build projection matrix
+	viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
+	projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f));//build projection matrix
 
 
 	//pass them into shader
@@ -220,11 +251,14 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
-	/*gl a = 1.0f;
-	glUniform1f(test_posLocation, 1.0f);*/
-
 	unsigned int lastTime = 0, currentTime;
 	int frames = 0;
+
+
+
+	for (int i = 0; i < 322; i++) { // init them all to false
+		Keys[i] = false;
+	}
 
 	bool go = true;
 	while (go)
@@ -238,20 +272,31 @@ int main(int argc, char* args[])
 			frames = 0;
 		}
 
-		SDL_Event incomingEvent;
-		while (SDL_PollEvent(&incomingEvent))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
-		{
+		//do movement and pass it into the shader again
 
-			switch (incomingEvent.type)
+		SDL_Event event;
+		while (SDL_PollEvent(&event))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
+		{
+			switch (event.type)
 			{
 			case SDL_QUIT:
 				go = false;
 				break;
+			case SDL_KEYDOWN:
+				Keys[event.key.keysym.sym] = true;
+				break;
+			case SDL_KEYUP:
+				Keys[event.key.keysym.sym] = false;
+				break;
 			}
-		}		
+			if (Keys[SDLK_ESCAPE]) {
+				go = false;
+			}
+		}
+			inputHandeler();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);		
+		glClear(GL_COLOR_BUFFER_BIT);
 
 
 		DrawVAOTris(triangleVAO, 6, shaderProgram);
