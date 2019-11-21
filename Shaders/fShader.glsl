@@ -24,6 +24,10 @@ struct intersectResult{
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 
 Ray genRay(vec3 vertexPos);
+Ray reflectionRay(Ray ray, intersectResult result);
+intersectResult intersect(Ray ray);
+intersectResult simpleIntersect(Ray ray);
+vec4 shade(intersectResult result, Ray ray);
 
 struct Sphere
 {
@@ -76,17 +80,58 @@ Ray genRay(vec3 vertexPos){
 
 Ray reflectionRay(Ray ray, intersectResult result){
 
-		//intersection point
+	//intersection point
 	vec3 intersect = ray.origin + (result.dist)*normalize(ray.direction);
 	vec3 surfaceNormal = normalize(intersect - result.pos);
 
-	vec3 newRayDir = (-ray.direction)+2*(dot(ray.direction,surfaceNormal))*surfaceNormal;
+	vec3 newRayDir = (ray.direction)+2*(dot(-ray.direction,surfaceNormal))*surfaceNormal;
 
-	ray.direction = newRayDir*-1;
+	ray.direction = newRayDir;
 	ray.origin = (intersect + (newRayDir*0.0001f));
 
 	return ray;
 }
+
+intersectResult simpleIntersect(Ray ray){
+	intersectResult rtn;
+	rtn.dist = -1;
+	rtn.hit = false;
+	rtn.color = backGroundColor;
+
+	vec3 n = normalize(ray.direction);
+
+	for(int i = 0; i < objects.length(); i++)
+	{
+		vec3 pa = objects[i].pos - ray.origin;
+		float dist = length(pa);
+		float a = dot(pa,n);
+
+		//its inside the sphere, draw blue sphere
+		if(dist <= objects[i].radius)
+		{
+			rtn.color = vec4(0.0, 0.0,1.0,1.0);		   
+			//goto next object
+			rtn.hit = false;
+			continue;
+		}
+
+		vec3 dVec = pa - (a*n);
+		dist = length(dVec);
+
+		if(dist <= objects[i].radius)
+		{
+			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
+			float hitDist = a-x;
+			if(hitDist < rtn.dist || rtn.dist < 0 && hitDist != rtn.dist && hitDist > 0)
+			{		
+				rtn.hit = true;
+			}
+		}
+	}
+
+return rtn;
+}
+
 
 intersectResult intersect(Ray ray)
 {
@@ -164,15 +209,36 @@ vec4 shade(intersectResult result, Ray ray){
 		float ambientStr = 0.1f;
 
 		vec4 ambient = vec4(ambientStr);
-		vec4 diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+		vec4 diffuse;
+		vec4 specular;
 
-		vec4 specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), result.shinyness));
+
+		//make a ray to the light and test for intersections, if intersection happens then its in shadow
+		Ray lightRay;
+		intersectResult shadowResult;
+		lightRay.direction = normalize(light.pos - intersect);
+		lightRay.origin = intersect + (lightRay.direction * 0.0001f);
+
+		shadowResult = simpleIntersect(lightRay);
+
+
+		//if intersection 
+		if(shadowResult.hit)
+		{			
+			//make diffuse and specular 0
+			diffuse = vec4(0.0f);
+			specular = vec4(0.0f);
+		}else{
+			//else shade appropriately 
+			diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+			specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), result.shinyness));
+		}
 
 		vec4 outColor = ambient + diffuse + specular; // reflectivity
 
 		outColor = outColor * light.color * result.color * 1.0f;
 		
-		return outColor / 3.0f;
+		return outColor ;
 }
 
 void addObject(vec3 P, float R, vec4 C, float shinyness){
@@ -209,7 +275,6 @@ vec4 Tracer()
 			//if object is very shiny, gen new ray and redo intersection;
 			if(result.shinyness > 40.0f )
 			{
-				//reflected = true;
 				//generate a new ray with reflection ray if the object is reflective
 				ray = reflectionRay(ray, result);
 				//restart loop as an itterative recursion approach
@@ -230,10 +295,12 @@ void main(){
 
 	//set up scene
 	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0),50.0f);
-	addObject(vec3(-0.2,0.0, -0.9),0.1f,vec4(0.0,1.0,0.0,1.0),10.0f);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f);
 	
 	//set up light
 	light.pos = vec3(-10.0,1.0,10.0);
+//	light.pos = vec3(5.0,1.0,5.0);
+//	light.pos = vec3(10.0,1.0,-10.0);
 	light.color = vec4(1.0);
 
 
