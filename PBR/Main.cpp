@@ -174,37 +174,37 @@ glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
 
-void moveMouse(float x, float y) {
-	viewMatrix = glm::rotate(viewMatrix, glm::radians(x * 0.1f), glm::vec3(0.0, -1.0, 0.0));
-	viewMatrix = glm::rotate(viewMatrix, glm::radians(y * 0.1f), glm::vec3(-1.0, 0.0, 0.0));
+void moveMouse(glm::vec2 pos) {
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(pos.x * 0.05f), glm::vec3(0.0, -1.0, 0.0));
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(pos.y * 0.05f), glm::vec3(-1.0, 0.0, 0.0));
 }
 
-void inputHandeler() {
+void inputHandeler(float timestep) {
 	glUseProgram(shaderProgram);
 
 	if (Keys[SDLK_w]) { // move forward
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -0.0001));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -1.0 * timestep));
 	}
 	if (Keys[SDLK_a]) { // move left
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(-0.0001, 0.0, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(-1.0 * timestep, 0.0, 0.0));
 	}
 	if (Keys[SDLK_s]) { // move back
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, 0.0001));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, 1.0 * timestep));
 	}
 	if (Keys[SDLK_d]) { // move right
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0001, 0.0, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(1.0 * timestep, 0.0, 0.0));
 	}
 	if (Keys[SDLK_q]) { // rotate
-		viewMatrix = glm::rotate(viewMatrix, glm::radians(0.01f), glm::vec3(0.0, 0.0, 1.0));
+		viewMatrix = glm::rotate(viewMatrix, glm::radians(100.0f * timestep), glm::vec3(0.0, 0.0, 1.0));
 	}
 	if (Keys[SDLK_e]) { // rotate
-		viewMatrix = glm::rotate(viewMatrix, glm::radians(-0.01f), glm::vec3(0.0, 0.0, 1.0));
+		viewMatrix = glm::rotate(viewMatrix, glm::radians(-100.0f * timestep), glm::vec3(0.0, 0.0, 1.0));
 	}
 	if (Keys[SDLK_r]) { // move back
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0001, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 1.0 * timestep, 0.0));
 	}
 	if (Keys[SDLK_f]) { // move right
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -0.0001, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -1.0 * timestep, 0.0));
 	}
 
 	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
@@ -264,14 +264,18 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
-	unsigned int lastTime = 0, currentTime;
+	Uint32 lastTime, currentTime;
 	int frames = 0;
+	lastTime = 0;
 
 
 
 	for (int i = 0; i < 322; i++) { // init them all to false
 		Keys[i] = false;
 	}
+
+	Uint32 startTime = SDL_GetTicks();
+	float timeStep;
 
 	bool go = true;
 	while (go)
@@ -284,6 +288,8 @@ int main(int argc, char* args[])
 			lastTime = currentTime;
 			frames = 0;
 		}
+
+
 
 		//do movement and pass it into the shader again
 
@@ -302,14 +308,17 @@ int main(int argc, char* args[])
 				Keys[event.key.keysym.sym] = false;
 				break;
 			case SDL_MOUSEMOTION:
-				moveMouse(event.motion.xrel, event.motion.yrel);
+				moveMouse(glm::vec2(event.motion.xrel, event.motion.yrel));
 				break;
 			}
 			if (Keys[SDLK_ESCAPE]) {
 				go = false;
 			}
 		}
-		inputHandeler();
+
+		timeStep = (SDL_GetTicks() - startTime) / 1000.0f;
+		inputHandeler(timeStep);
+		startTime = SDL_GetTicks();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

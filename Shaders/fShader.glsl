@@ -298,8 +298,8 @@ void main(){
 	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f);
 	
 	//set up light
-	light.pos = vec3(-10.0,1.0,10.0);
-//	light.pos = vec3(5.0,1.0,5.0);
+//	light.pos = vec3(-10.0,1.0,10.0);
+	light.pos = vec3(5.0,1.0,5.0);
 //	light.pos = vec3(10.0,1.0,-10.0);
 	light.color = vec4(1.0);
 
