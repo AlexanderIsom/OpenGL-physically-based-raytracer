@@ -174,6 +174,11 @@ glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
 
+void moveMouse(float x, float y) {
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(x * 0.1f), glm::vec3(0.0, -1.0, 0.0));
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(y * 0.1f), glm::vec3(-1.0, 0.0, 0.0));
+}
+
 void inputHandeler() {
 	glUseProgram(shaderProgram);
 
@@ -190,13 +195,19 @@ void inputHandeler() {
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0001, 0.0, 0.0));
 	}
 	if (Keys[SDLK_q]) { // rotate
-		viewMatrix = glm::rotate(viewMatrix,glm::radians(0.01f), glm::vec3(0.0, 1.0, 0.0));
+		viewMatrix = glm::rotate(viewMatrix, glm::radians(0.01f), glm::vec3(0.0, 0.0, 1.0));
 	}
 	if (Keys[SDLK_e]) { // rotate
-		viewMatrix = glm::rotate(viewMatrix, glm::radians(-0.01f), glm::vec3(0.0, 1.0, 0.0));
+		viewMatrix = glm::rotate(viewMatrix, glm::radians(-0.01f), glm::vec3(0.0, 0.0, 1.0));
+	}
+	if (Keys[SDLK_r]) { // move back
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0001, 0.0));
+	}
+	if (Keys[SDLK_f]) { // move right
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -0.0001, 0.0));
 	}
 
-	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
+	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 }
 
@@ -227,6 +238,8 @@ int main(int argc, char* args[])
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
 	if (!InitGL())
 	{
 		return -1;
@@ -244,10 +257,10 @@ int main(int argc, char* args[])
 
 
 	//pass them into shader
-	GLint view_location = glGetUniformLocation(shaderProgram, "viewMatrix");
+	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-	GLint projection_location = glGetUniformLocation(shaderProgram, "projectionMatrix");
+	GLint projection_location = glGetUniformLocation(shaderProgram, "inverseProjectionMatrix");
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
@@ -288,12 +301,15 @@ int main(int argc, char* args[])
 			case SDL_KEYUP:
 				Keys[event.key.keysym.sym] = false;
 				break;
+			case SDL_MOUSEMOTION:
+				moveMouse(event.motion.xrel, event.motion.yrel);
+				break;
 			}
 			if (Keys[SDLK_ESCAPE]) {
 				go = false;
 			}
 		}
-			inputHandeler();
+		inputHandeler();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

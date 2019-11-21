@@ -1,2 +1,4 @@
 ﻿  Main.cpp
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(305,46): warning C4244: 'argument': conversion from 'Sint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(305,27): warning C4244: 'argument': conversion from 'Sint32' to 'float', possible loss of data
   PBR.vcxproj -> C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe

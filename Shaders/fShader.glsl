@@ -3,8 +3,8 @@ out vec4 fColor;
 
 in vec3 vertexPos;
 
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+uniform mat4 inverseViewMatrix;
+uniform mat4 inverseProjectionMatrix;
 
 int id;
 
@@ -64,12 +64,12 @@ Ray genRay(vec3 vertexPos){
 	vec4 startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
 	vec4 endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
 
-	startPoint = projectionMatrix * startPoint;
-	startPoint = viewMatrix * startPoint;
+	startPoint = inverseProjectionMatrix * startPoint;
+	startPoint = inverseViewMatrix * startPoint;
 	startPoint = startPoint / startPoint.w;
 	
-	endPoint = projectionMatrix * endPoint;
-	endPoint = viewMatrix * endPoint;
+	endPoint = inverseProjectionMatrix * endPoint;
+	endPoint = inverseViewMatrix * endPoint;
 	endPoint = endPoint / endPoint.w;
 
 	ray.origin = vec3(startPoint);
