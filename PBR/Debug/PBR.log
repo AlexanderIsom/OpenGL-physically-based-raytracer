@@ -1,2 +1,5 @@
 ﻿  Main.cpp
-  PBR.vcxproj -> C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(301,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(308,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(367,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+  PBR.vcxproj -> C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe

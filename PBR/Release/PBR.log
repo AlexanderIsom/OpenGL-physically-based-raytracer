@@ -1,13 +1,10 @@
 ﻿  Main.cpp
-Main.obj : error LNK2001: unresolved external symbol _SDL_GetWindowSurface
-Main.obj : error LNK2001: unresolved external symbol _SDL_Init
-Main.obj : error LNK2001: unresolved external symbol _SDL_DestroyWindow
-Main.obj : error LNK2001: unresolved external symbol _SDL_GetError
-Main.obj : error LNK2001: unresolved external symbol _SDL_Quit
-Main.obj : error LNK2001: unresolved external symbol _SDL_Delay
-Main.obj : error LNK2001: unresolved external symbol _SDL_MapRGB
-Main.obj : error LNK2001: unresolved external symbol _SDL_CreateWindow
-Main.obj : error LNK2001: unresolved external symbol _SDL_FillRect
-Main.obj : error LNK2001: unresolved external symbol _SDL_UpdateWindowSurface
-MSVCRT.lib(exe_main.obj) : error LNK2001: unresolved external symbol _main
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Release\PBR.exe : fatal error LNK1120: 11 unresolved externals
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(272,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(279,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(314,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+  Generating code
+  1 of 319 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  PBR.vcxproj -> C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\Release\PBR.exe

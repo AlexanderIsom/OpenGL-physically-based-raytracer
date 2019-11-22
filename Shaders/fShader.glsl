@@ -166,6 +166,8 @@ intersectResult intersect(Ray ray)
 			continue;
 		}
 
+
+		//d = (p-a) - ((dot(a,n)) * n)
 		vec3 dVec = pa - (a*n);
 		dist = length(dVec);
 

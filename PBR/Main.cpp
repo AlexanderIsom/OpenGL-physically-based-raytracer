@@ -7,6 +7,7 @@
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
+#include <vector>
 
 static int win(0);
 
@@ -93,17 +94,20 @@ bool CheckShaderCompiled(GLint shader) //check the shader compiled correctly
 	return true;
 }
 
-std::string readFile(const char* filePath) {
+std::string readFile(const char* filePath)
+{
 	std::string content;
 	std::ifstream fileStream(filePath, std::ios::in);
 
-	if (!fileStream.is_open()) {
+	if (!fileStream.is_open())
+	{
 		std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
 		return "";
 	}
 
 	std::string line = "";
-	while (!fileStream.eof()) {
+	while (!fileStream.eof())
+	{
 		std::getline(fileStream, line);
 		content.append(line + "\n");
 	}
@@ -169,41 +173,67 @@ GLuint LoadShaders()//colour / shade the object
 	return program;
 }
 
-bool Keys[322];
+std::vector<SDL_Keycode> Keys;
 glm::mat4 viewMatrix;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
 
-void moveMouse(glm::vec2 pos) {
+void moveMouse(glm::vec2 pos)
+{
 	viewMatrix = glm::rotate(viewMatrix, glm::radians(pos.x * 0.05f), glm::vec3(0.0, -1.0, 0.0));
 	viewMatrix = glm::rotate(viewMatrix, glm::radians(pos.y * 0.05f), glm::vec3(-1.0, 0.0, 0.0));
 }
 
-void inputHandeler(float timestep) {
+bool keyDown(SDL_Keycode key)
+{
+	for (auto it = Keys.begin(); it != Keys.end();)
+	{
+		if (*it == key)
+		{
+			return true;
+		}
+		else
+		{
+			it++;
+		}
+	}
+	return false;
+}
+
+void inputHandeler(float timestep)
+{
 	glUseProgram(shaderProgram);
 
-	if (Keys[SDLK_w]) { // move forward
+	if (keyDown(SDLK_w)) // move forward
+	{
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -1.0 * timestep));
 	}
-	if (Keys[SDLK_a]) { // move left
+	if (keyDown(SDLK_a))
+	{ // move left
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(-1.0 * timestep, 0.0, 0.0));
 	}
-	if (Keys[SDLK_s]) { // move back
+	if (keyDown(SDLK_s))
+	{ // move back
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, 1.0 * timestep));
 	}
-	if (Keys[SDLK_d]) { // move right
+	if (keyDown(SDLK_d))
+	{ // move right
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(1.0 * timestep, 0.0, 0.0));
 	}
-	if (Keys[SDLK_q]) { // rotate
+	if (keyDown(SDLK_q))
+	{ // rotate
 		viewMatrix = glm::rotate(viewMatrix, glm::radians(100.0f * timestep), glm::vec3(0.0, 0.0, 1.0));
 	}
-	if (Keys[SDLK_e]) { // rotate
+	if (keyDown(SDLK_e))
+	{ // rotate
 		viewMatrix = glm::rotate(viewMatrix, glm::radians(-100.0f * timestep), glm::vec3(0.0, 0.0, 1.0));
 	}
-	if (Keys[SDLK_r]) { // move back
+	if (keyDown(SDLK_r))
+	{ // move up
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 1.0 * timestep, 0.0));
 	}
-	if (Keys[SDLK_f]) { // move right
+	if (keyDown(SDLK_f))
+	{ // move down
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -1.0 * timestep, 0.0));
 	}
 
@@ -264,17 +294,11 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
-	Uint32 lastTime, currentTime;
+	float lastTime, currentTime;
 	int frames = 0;
 	lastTime = 0;
 
-
-
-	for (int i = 0; i < 322; i++) { // init them all to false
-		Keys[i] = false;
-	}
-
-	Uint32 startTime = SDL_GetTicks();
+	float startTime = SDL_GetTicks();
 	float timeStep;
 
 	bool go = true;
@@ -283,13 +307,12 @@ int main(int argc, char* args[])
 		frames++;
 		currentTime = SDL_GetTicks();
 
-		if (currentTime >= lastTime + 1000) {
+		if (currentTime >= lastTime + 1000)
+		{
 			printf("Fps: %d \n", frames);
 			lastTime = currentTime;
 			frames = 0;
 		}
-
-
 
 		//do movement and pass it into the shader again
 
@@ -302,21 +325,44 @@ int main(int argc, char* args[])
 				go = false;
 				break;
 			case SDL_KEYDOWN:
-				Keys[event.key.keysym.sym] = true;
+				for (auto it = Keys.begin(); it != Keys.end();)
+				{
+					if (*it == event.key.keysym.sym)
+					{
+						break;
+					}
+					else
+					{
+						it++;
+					}
+				}
+				Keys.push_back(event.key.keysym.sym);
 				break;
 			case SDL_KEYUP:
-				Keys[event.key.keysym.sym] = false;
+				//Keys.erase(std::find(Keys.begin(), Keys.end(), event.key.keysym.sym));
+				for (auto it = Keys.begin(); it != Keys.end();)
+				{
+					if (*it == event.key.keysym.sym)
+					{
+						it = Keys.erase(it);
+					}
+					else
+					{
+						it++;
+					}
+				}
 				break;
 			case SDL_MOUSEMOTION:
 				moveMouse(glm::vec2(event.motion.xrel, event.motion.yrel));
 				break;
 			}
-			if (Keys[SDLK_ESCAPE]) {
+			if (keyDown(SDLK_ESCAPE))
+			{
 				go = false;
 			}
 		}
 
-		timeStep = (SDL_GetTicks() - startTime) / 1000.0f;
+		timeStep = ((float)SDL_GetTicks() - startTime) / 1000.0f;
 		inputHandeler(timeStep);
 		startTime = SDL_GetTicks();
 
