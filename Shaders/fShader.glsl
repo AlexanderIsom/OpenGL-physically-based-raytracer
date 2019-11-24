@@ -193,6 +193,23 @@ vec4 shade(intersectResult result, Ray ray){
 		
 		vec3 n = normalize(ray.direction);
 
+
+		//this needs replacing with brdf!
+		//light = BRDF*IL*dot(N,L)
+		//I is intensity
+		//BRDF defines material reflectance properties
+		//IL is light intensity
+		//Dot(N,L) is dot product between normal and light direction
+
+		//BRDF = diffuseBRDF+SpecularBRDF
+
+		//diffuseBRDF = (1-Fresnel)*DiffuseFunc
+
+		//diffuseFunc = pass in( vec3 albedo) return albedo / PI; 
+
+		//specularBRDF = (fresnel*distrib*geom)/(4 DOT(N,L)DOT(N,V))
+
+
 		//intersection point
 		vec3 intersect = ray.origin + (result.dist)*n;
 
