@@ -8,6 +8,9 @@ uniform mat4 inverseProjectionMatrix;
 
 int id;
 
+#define PI 3.1415926535897932384626433832795
+
+
 struct Ray{
 	vec3 origin;
 	vec3 direction;
@@ -189,6 +192,37 @@ intersectResult intersect(Ray ray)
 return rtn;
 }
 
+float DistributionGGX(vec3 N, vec3 H, float a)//n = surface normal, h halfway vector between surface normal and light direction, a surface roughness
+{
+    float a2     = a*a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
+	
+    float nom    = a2;
+    float denom  = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+	
+    return nom / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float k)//n = surface nornmal, v = view direction, k = 
+{
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+	
+    return nom / denom;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) //cos theta = dot of surface normal and view direciton
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 diffuseLambert(vec3 albedo) // albedo of pixel
+{
+	return albedo / PI;
+}
+
 vec4 shade(intersectResult result, Ray ray){
 		
 		vec3 n = normalize(ray.direction);
@@ -199,15 +233,11 @@ vec4 shade(intersectResult result, Ray ray){
 		//I is intensity
 		//BRDF defines material reflectance properties
 		//IL is light intensity
-		//Dot(N,L) is dot product between normal and light direction
+		//Dot(N,L) is dot product between normal and light direction		
 
-		//BRDF = diffuseBRDF+SpecularBRDF
+		vec4 diffuseBRDF ; 
+		vec4 specularBRDF ; 
 
-		//diffuseBRDF = (1-Fresnel)*DiffuseFunc
-
-		//diffuseFunc = pass in( vec3 albedo) return albedo / PI; 
-
-		//specularBRDF = (fresnel*distrib*geom)/(4 DOT(N,L)DOT(N,V))
 
 
 		//intersection point
@@ -216,10 +246,30 @@ vec4 shade(intersectResult result, Ray ray){
 		//get surface normal
 		vec3 surfaceNormal = normalize(intersect - result.pos);
 
-		//SHADING Phong
-			
+		//light direction
 		light.direction = normalize(light.pos - intersect);
+		//view direction
 		vec3 viewDir = normalize(vertexPos - intersect);
+		
+		vec3 lightDir = normalize(surfaceNormal - light.direction);
+
+
+
+		//BRDF shading
+		vec3 f0 = vec3(0.04);
+		f0 = mix(f0, vec3(result.color), result.shinyness);
+
+
+		float cosTheta = dot(surfaceNormal, viewDir);
+
+		diffuseBRDF = vec4((1-fresnelSchlick(cosTheta, f0))*diffuseLambert(vec3(1.0f)), 1.0f);
+
+		specularBRDF = vec4((fresnelSchlick(cosTheta, f0)*DistributionGGX(surfaceNormal, lightDir, 1.0f)*GeometrySchlickGGX(cosTheta, 1.0f)/4*(dot(surfaceNormal,light.direction)*dot(surfaceNormal,viewDir))),1.0f);
+
+		
+		
+		
+		//SHADING Phong
 		vec3 midDir = normalize(light.direction + viewDir);
 
 
