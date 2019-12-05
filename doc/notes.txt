@@ -1,0 +1,57 @@
+brdf = diffuseBRDF + specularBRDF
+
+
+diffuseBRDF = (1-fresnel)*diffuseFunc
+
+diffuseFunc (pass in albedo){
+  return albedo / pi;
+}
+
+
+
+sepcular = fresnel*distrib*geom
+          ---------------------
+            4dot(N,L)*dot(N,V)
+
+N = normal
+L = light direction
+V = eye direction
+
+3 different distribution functs
+  beckmann distribution:
+
+  d=                 1                      -1tan^2 theta*m
+           -------------------------    e^ ----------------
+           pi*alpha^2 cos^4(theta*m)             alpha^a
+
+
+
+
+   phong
+
+         alpha+2
+d=       -------  (cos theta * m)^alpha
+          2*pi
+
+
+
+ggx distribution
+
+                  alpha^2
+d = --------------------------------------
+      pi(dot(m,n))^4(alpha^2+tan^2(theta*m))^2
+
+
+      alpha = roughness
+      n = macrosurface normal
+      m = microsurface normal
+
+
+final geom = geom(eyeDir) * geom(lightdir)
+
+ggx based geom:
+    g =               2
+       -----------------------------
+       1+sqrt(1+alpha^2*tan^2*theta)
+
+       
