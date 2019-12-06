@@ -22,6 +22,7 @@ struct intersectResult{
 	bool hit;
 	vec4 color;
 	float shinyness;
+	float radius;
 };
 
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
@@ -185,6 +186,7 @@ intersectResult intersect(Ray ray)
 				rtn.color = objects[i].color;
 				rtn.pos = objects[i].pos;
 				rtn.shinyness = objects[i].shinyness;
+				rtn.radius = objects[i].radius;
 			}
 		}
 	}
@@ -305,8 +307,24 @@ vec4 shade(intersectResult result, Ray ray){
 
 		vec4 outColor = ambient + diffuse + specular; // reflectivity
 
-		outColor = outColor * light.color * result.color * 1.0f;
+
+		//get coordinates of texture
+		vec3 intPos = result.pos - intersect;
+		float theta = atan(intPos.x/intPos.z);
+		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
+		float sTheta = asin(a/result.radius);
+
+		float sphereX = theta / 2*PI;
+		float sphereY = sTheta / 2*PI;
+
+		vec4 textColor = vec4(sphereX,sphereY,0,1.0f);
+
+		outColor = outColor * light.color * textColor * 1.0f;
+		//this will replace result.Color; as this will be the texture color;
+
+
 		
+//		outColor = outColor * light.color * result.color * 1.0f;
 		return outColor ;
 }
 
