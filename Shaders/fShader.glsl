@@ -277,7 +277,7 @@ vec4 shade(intersectResult result, Ray ray){
 
 		//phong shading model // needs to be updated with pbr
 			
-		float ambientStr = 0.1f;
+		float ambientStr = 10.1f;
 
 		vec4 ambient = vec4(ambientStr);
 		vec4 diffuse;
@@ -308,21 +308,20 @@ vec4 shade(intersectResult result, Ray ray){
 		vec4 outColor = ambient + diffuse + specular; // reflectivity
 
 
-		//get coordinates of texture
+		//get coordinates of texture using spherical coordinate system
+		//text color replaces surface color as instead of a color it will get it from a texture
+		//might be good to test a bool here depending on the result of the intersection, if it is a textured object or just a colored object
 		vec3 intPos = result.pos - intersect;
 		float theta = atan(intPos.x/intPos.z);
 		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
 		float sTheta = asin(a/result.radius);
 
-		float sphereX = theta / 2*PI;
-		float sphereY = sTheta / 2*PI;
+		float sphereX = theta / (2*PI);
+		float sphereY = sTheta / (2*PI);
 
 		vec4 textColor = vec4(sphereX,sphereY,0,1.0f);
 
 		outColor = outColor * light.color * textColor * 1.0f;
-		//this will replace result.Color; as this will be the texture color;
-
-
 		
 //		outColor = outColor * light.color * result.color * 1.0f;
 		return outColor ;
