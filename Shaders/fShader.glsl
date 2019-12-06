@@ -26,6 +26,7 @@ struct intersectResult{
 };
 
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
+//vec4 backGroundColor = vec4(1.0, 1.0 ,1.0,1.0);
 
 Ray genRay(vec3 vertexPos);
 Ray reflectionRay(Ray ray, intersectResult result);
@@ -277,7 +278,7 @@ vec4 shade(intersectResult result, Ray ray){
 
 		//phong shading model // needs to be updated with pbr
 			
-		float ambientStr = 10.1f;
+		float ambientStr = 0.1f;
 
 		vec4 ambient = vec4(ambientStr);
 		vec4 diffuse;
@@ -311,17 +312,26 @@ vec4 shade(intersectResult result, Ray ray){
 		//get coordinates of texture using spherical coordinate system
 		//text color replaces surface color as instead of a color it will get it from a texture
 		//might be good to test a bool here depending on the result of the intersection, if it is a textured object or just a colored object
-		vec3 intPos = result.pos - intersect;
-		float theta = atan(intPos.x/intPos.z);
-		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
-		float sTheta = asin(a/result.radius);
+		vec3 intPos = intersect - result.pos;
+		intPos = normalize(intPos);
+		float theta = atan(-intPos.x,intPos.y);
+//		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
+//		float phi = asin(a/result.radius);
+		theta = (theta + PI / 2) / (PI * 2)+PI*(28.670*360.0);
+		float phi = acos(intPos.z) / PI;
 
-		float sphereX = theta / (2*PI);
-		float sphereY = sTheta / (2*PI);
+//		float theta = atan(intPos.x/intPos.z);
+//		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
+//		float phi = asin(a/result.radius);
 
+		float sphereX = theta;
+		float sphereY = phi ;
+//
+		
 		vec4 textColor = vec4(sphereX,sphereY,0,1.0f);
 
-		outColor = outColor * light.color * textColor * 1.0f;
+		outColor = textColor * 1.0f;
+//		outColor =  outColor * light.color * textColor * 1.0f;
 		
 //		outColor = outColor * light.color * result.color * 1.0f;
 		return outColor ;
