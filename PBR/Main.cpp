@@ -8,6 +8,8 @@
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
 #include <vector>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 static int win(0);
 
@@ -283,7 +285,7 @@ int main(int argc, char* args[])
 
 	//create matrixes
 	viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
-	projectionMatrix = glm::inverse(glm::perspective(30.0f * 3.14159265358979f / 180.0f, (float)windowWidth / (float)windowHeight, 0.1f, 100.0f));//build projection matrix
+	projectionMatrix = glm::inverse(glm::perspective(glm::radians(30.0f) , (float)windowWidth / (float)windowHeight, 0.001f, 100.0f));//build projection matrix
 
 
 	//pass them into shader
@@ -293,6 +295,35 @@ int main(int argc, char* args[])
 	GLint projection_location = glGetUniformLocation(shaderProgram, "inverseProjectionMatrix");
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("../Materials/textures/iron.jpg",&width,&height,&nrChannels,0);
+
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "failed to load texture\n";
+	}
+	stbi_image_free(data);
+
+	glUniform1i(glGetUniformLocation(shaderProgram, "u_Texture"), 0);
+	GLint w_location = glGetUniformLocation(shaderProgram, "width");
+	glUniform1i(w_location, width);
+
+	GLint h_location = glGetUniformLocation(shaderProgram, "height");
+	glUniform1i(h_location, height);
 
 	float lastTime, currentTime;
 	int frames = 0;

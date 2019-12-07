@@ -6,6 +6,9 @@ in vec3 vertexPos;
 uniform mat4 inverseViewMatrix;
 uniform mat4 inverseProjectionMatrix;
 
+uniform sampler2D u_Texture;
+uniform int widht, height;
+
 int id;
 
 #define PI 3.1415926535897932384626433832795
@@ -313,25 +316,18 @@ vec4 shade(intersectResult result, Ray ray){
 		//text color replaces surface color as instead of a color it will get it from a texture
 		//might be good to test a bool here depending on the result of the intersection, if it is a textured object or just a colored object
 		vec3 intPos = intersect - result.pos;
+
+		//convert cartesian to uv coords
 		intPos = normalize(intPos);
-		float theta = atan(-intPos.x,intPos.y);
-//		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
-//		float phi = asin(a/result.radius);
-		theta = (theta + PI / 2) / (PI * 2)+PI*(28.670*360.0);
-		float phi = acos(intPos.z) / PI;
+		float x = 0.5 + atan(intPos.z, intPos.x) / (2*PI);
+		float y = 0.5 - asin(intPos.y) / PI;
 
-//		float theta = atan(intPos.x/intPos.z);
-//		float a = sqrt(pow(intPos.x,2)+pow(intPos.z,2));
-//		float phi = asin(a/result.radius);
-
-		float sphereX = theta;
-		float sphereY = phi ;
-//
-		
-		vec4 textColor = vec4(sphereX,sphereY,0,1.0f);
-
-		outColor = textColor * 1.0f;
-//		outColor =  outColor * light.color * textColor * 1.0f;
+		//should be between 0 and 1
+		vec4 textColor;
+//		textColor = vec4(x,y,0,1.0f); //with color map
+		textColor = texture2D(u_Texture, vec2(x, y));
+//		outColor = textColor * 1.0f; //without shading
+		outColor =  outColor * light.color * textColor * 1.0f; //with shading
 		
 //		outColor = outColor * light.color * result.color * 1.0f;
 		return outColor ;
