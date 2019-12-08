@@ -6,7 +6,9 @@ in vec3 vertexPos;
 uniform mat4 inverseViewMatrix;
 uniform mat4 inverseProjectionMatrix;
 
-uniform sampler2D u_Texture;
+uniform sampler2D u_albedo[2];
+uniform sampler2D u_roughness[2];
+uniform sampler2D u_metalic[2];
 uniform int widht, height;
 
 int id;
@@ -26,6 +28,7 @@ struct intersectResult{
 	vec4 color;
 	float shinyness;
 	float radius;
+	int texId;
 };
 
 vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
@@ -43,7 +46,7 @@ struct Sphere
 	vec4 color;
 	float radius;
 	float shinyness;
-	
+	int texId;
 };
 
 Sphere objects[2];
@@ -136,7 +139,7 @@ intersectResult simpleIntersect(Ray ray){
 			}
 		}
 	}
-
+	//function to get hit albedo from 3d positon to uv position and check texture
 return rtn;
 }
 
@@ -191,6 +194,7 @@ intersectResult intersect(Ray ray)
 				rtn.pos = objects[i].pos;
 				rtn.shinyness = objects[i].shinyness;
 				rtn.radius = objects[i].radius;
+				rtn.texId = objects[i].texId;
 			}
 		}
 	}
@@ -325,7 +329,7 @@ vec4 shade(intersectResult result, Ray ray){
 		//should be between 0 and 1
 		vec4 textColor;
 //		textColor = vec4(x,y,0,1.0f); //with color map
-		textColor = texture2D(u_Texture, vec2(x, y));
+		textColor = texture2D(u_albedo[result.texId], vec2(x, y));
 //		outColor = textColor * 1.0f; //without shading
 		outColor =  outColor * light.color * textColor * 1.0f; //with shading
 		
@@ -333,12 +337,13 @@ vec4 shade(intersectResult result, Ray ray){
 		return outColor ;
 }
 
-void addObject(vec3 P, float R, vec4 C, float shinyness){
+void addObject(vec3 P, float R, vec4 C, float shinyness, int texId){
 	
 	objects[id].pos = P;
 	objects[id].radius = R;
 	objects[id].color = C;
 	objects[id].shinyness = shinyness;
+	objects[id].texId = texId;
 
 	id++;
 }
@@ -386,8 +391,8 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0),50.0f);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f);
+	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0),50.0f, 0);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f,1);
 	
 	//set up light
 //	light.pos = vec3(-10.0,1.0,10.0);

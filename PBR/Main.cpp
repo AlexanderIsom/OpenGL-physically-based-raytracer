@@ -12,7 +12,7 @@
 #include <stb_image.h>
 
 static int win(0);
-
+std::vector<std::string > textures;
 bool InitGL()
 {
 	glewExperimental = GL_TRUE;
@@ -243,6 +243,125 @@ void inputHandeler(float timestep)
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 }
 
+void loadTexture()
+{
+	const int size = 10;
+	glUseProgram(shaderProgram);
+	GLint albedoSamples[size];
+	//load albedo textures
+	for (int i = 0; i < textures.size(); i++)
+	{
+		albedoSamples[i] = i;
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int width, height, nrChannels;
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_albedo.jpg";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "failed to load texture\n";
+		}
+		stbi_image_free(data);
+
+	}
+
+
+	GLuint albedo = glGetUniformLocation(shaderProgram, "u_albedo");
+
+	glUniform1iv(albedo, 2, albedoSamples);
+
+
+
+	//load roughness textures
+	GLint roughnessSamples[size];
+	for (int i = 0; i < textures.size(); i++)
+	{
+		roughnessSamples[i] = i + textures.size();
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glActiveTexture(GL_TEXTURE0 + i + textures.size());
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int width, height, nrChannels;
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_roughness.jpg";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "failed to load texture\n";
+		}
+		stbi_image_free(data);
+
+	}
+
+	GLuint roughness = glGetUniformLocation(shaderProgram, "u_roughness");
+
+	glUniform1iv(roughness, 2, roughnessSamples);
+
+
+	//load roughness textures
+	GLint metalicSamples[size];
+	for (int i = 0; i < textures.size(); i++)
+	{
+		metalicSamples[i] = i + textures.size();
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glActiveTexture(GL_TEXTURE0 + i + textures.size());
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int width, height, nrChannels;
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_metalic.jpg";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "failed to load texture\n";
+		}
+		stbi_image_free(data);
+
+	}
+
+	GLuint metalic = glGetUniformLocation(shaderProgram, "u_metalic");
+
+	glUniform1iv(metalic, 2, metalicSamples);
+
+	return;
+}
+
 
 int main(int argc, char* args[])
 {
@@ -285,7 +404,7 @@ int main(int argc, char* args[])
 
 	//create matrixes
 	viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));//build view matrix
-	projectionMatrix = glm::inverse(glm::perspective(glm::radians(30.0f) , (float)windowWidth / (float)windowHeight, 0.001f, 100.0f));//build projection matrix
+	projectionMatrix = glm::inverse(glm::perspective(glm::radians(30.0f), (float)windowWidth / (float)windowHeight, 0.001f, 100.0f));//build projection matrix
 
 
 	//pass them into shader
@@ -295,35 +414,11 @@ int main(int argc, char* args[])
 	GLint projection_location = glGetUniformLocation(shaderProgram, "inverseProjectionMatrix");
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	//loadTexture("../Materials/textures/iron.jpg", 0);
+	textures.push_back("iron");
+	textures.push_back("brick");
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load("../Materials/textures/iron.jpg",&width,&height,&nrChannels,0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "failed to load texture\n";
-	}
-	stbi_image_free(data);
-
-	glUniform1i(glGetUniformLocation(shaderProgram, "u_Texture"), 0);
-	GLint w_location = glGetUniformLocation(shaderProgram, "width");
-	glUniform1i(w_location, width);
-
-	GLint h_location = glGetUniformLocation(shaderProgram, "height");
-	glUniform1i(h_location, height);
+	loadTexture();
 
 	float lastTime, currentTime;
 	int frames = 0;
@@ -331,6 +426,8 @@ int main(int argc, char* args[])
 
 	float startTime = SDL_GetTicks();
 	float timeStep;
+
+	SDL_RaiseWindow(window);
 
 	bool go = true;
 	while (go)
