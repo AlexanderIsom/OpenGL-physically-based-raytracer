@@ -323,7 +323,7 @@ vec4 shade(intersectResult result, Ray ray){
 
 		//convert cartesian to uv coords
 		intPos = normalize(intPos);
-		float x = 0.5 + atan(intPos.z, intPos.x) / (2*PI);
+		float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
 		float y = 0.5 - asin(intPos.y) / PI;
 
 		//should be between 0 and 1

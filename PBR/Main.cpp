@@ -415,8 +415,8 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 	//loadTexture("../Materials/textures/iron.jpg", 0);
-	textures.push_back("iron");
-	textures.push_back("brick");
+	textures.push_back("earth");
+	textures.push_back("moon");
 
 	loadTexture();
 
