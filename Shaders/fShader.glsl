@@ -223,33 +223,31 @@ float GeometrySchlickGGX(float NdotV, float k)//n = surface nornmal, v = view di
     return nom / denom;
 }
 
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float k)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx1 = GeometrySchlickGGX(NdotV, k);
+    float ggx2 = GeometrySchlickGGX(NdotL, k);
+	
+    return ggx1 * ggx2;
+}
+
 vec3 fresnelSchlick(float cosTheta, vec3 F0) //cos theta = dot of surface normal and view direciton
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 diffuseLambert(vec3 albedo) // albedo of pixel
+vec3 diffuseLambert(vec4 albedo) // albedo of pixel
 {
 	return albedo / PI;
 }
 
 vec4 shade(intersectResult result, Ray ray){
 		
+		//ray direciton
 		vec3 n = normalize(ray.direction);
-
-
-		//this needs replacing with brdf!
-		//light = BRDF*IL*dot(N,L)
-		//I is intensity
-		//BRDF defines material reflectance properties
-		//IL is light intensity
-		//Dot(N,L) is dot product between normal and light direction		
-
-		vec4 diffuseBRDF ; 
-		vec4 specularBRDF ; 
-
-
-
+		
 		//intersection point
 		vec3 intersect = ray.origin + (result.dist)*n;
 
@@ -257,81 +255,93 @@ vec4 shade(intersectResult result, Ray ray){
 		vec3 surfaceNormal = normalize(intersect - result.pos);
 
 		//light direction
-		light.direction = normalize(light.pos - intersect);
+//		light.direction = normalize(light.pos - intersect);
 		//view direction
-		vec3 viewDir = normalize(vertexPos - intersect);
+		vec3 viewDir = normalize(-ray.direction);
 		
-		vec3 lightDir = normalize(surfaceNormal - light.direction);
+		vec3 lightDir = normalize(light.pos - surfaceNormal);
 
+		vec3 intPos = intersect - result.pos;
 
+		//convert cartesian to uv coords
+		intPos = surfaceNormal;
+		float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
+		float y = 0.5 - asin(intPos.y) / PI;
+
+		vec4 diffuseBRDF ; 
+		vec4 specularBRDF ; 		
+
+		vec4 albedo = texture2D(u_albedo[result.texId], vec2(x, y));
+		vec4 metalic = texture2D(u_metalic[result.texId], vec2(x, y));
+		vec4 roughness = texture2D(u_roughness[result.texId], vec2(x, y));
 
 		//BRDF shading
 		vec3 f0 = vec3(0.04);
-		f0 = mix(f0, vec3(result.color), result.shinyness);
+		f0 = mix(f0, vec3(albedo), vec3(metalic));
 
+		float cosTheta = dot(surfaceNormal, viewDir);		
 
-		float cosTheta = dot(surfaceNormal, viewDir);
+		//float representing roughness;
+		float a = dot(vec3(roughness), vec3(0.299, 0.587, 0.114));
 
-		diffuseBRDF = vec4((1-fresnelSchlick(cosTheta, f0))*diffuseLambert(vec3(1.0f)), 1.0f);
-
-		specularBRDF = vec4((fresnelSchlick(cosTheta, f0)*DistributionGGX(surfaceNormal, lightDir, 1.0f)*GeometrySchlickGGX(cosTheta, 1.0f)/4*(dot(surfaceNormal,light.direction)*dot(surfaceNormal,viewDir))),1.0f);
-
-		
-		
+		//float representing metalic
+		float k = pow(a + 1,2)/8;
 		
 		//SHADING Phong
-		vec3 midDir = normalize(light.direction + viewDir);
-
-
-		//phong shading model // needs to be updated with pbr
-			
+//		vec3 midDir = normalize(light.direction + viewDir);
+//
+//		//phong shading model // needs to be updated with pbr
+//			
 		float ambientStr = 0.1f;
-
+//
 		vec4 ambient = vec4(ambientStr);
-		vec4 diffuse;
-		vec4 specular;
-
+		ambient *= albedo;
+//		vec4 diffuse;
+//		vec4 specular;
 
 		//make a ray to the light and test for intersections, if intersection happens then its in shadow
 		Ray lightRay;
 		intersectResult shadowResult;
-		lightRay.direction = normalize(light.pos - intersect);
-		lightRay.origin = intersect + (lightRay.direction * 0.0001f);
-
-		shadowResult = simpleIntersect(lightRay);
-
+		if(length(light.pos - intersect) < 0){
+		
+		}else{
+			lightRay.direction = normalize(light.pos - intersect);
+			lightRay.origin = intersect + (lightRay.direction * 0.0001f);
+			shadowResult = simpleIntersect(lightRay);
+		}
 
 		//if intersection 
 		if(shadowResult.hit)
 		{			
 			//make diffuse and specular 0
-			diffuse = vec4(0.0f);
-			specular = vec4(0.0f);
+//			diffuse = vec4(0.0f);
+//			specular = vec4(0.0f);
+			diffuseBRDF = vec4(0.0f,0,0,1.0f);
+			specularBRDF = vec4(0.0f);
 		}else{
 			//else shade appropriately 
-			diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
-			specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), result.shinyness));
+//			diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+//			specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), result.shinyness));
+
+			diffuseBRDF = vec4((1- fresnelSchlick(cosTheta, f0))*diffuseLambert(albedo), 1.0f);
+			specularBRDF = vec4((fresnelSchlick(cosTheta, f0)*DistributionGGX(surfaceNormal, lightDir, a)*GeometrySmith(surfaceNormal, viewDir, lightDir, k)) ,1.0f);
+			// /4*(dot(surfaceNormal,light.direction)*dot(surfaceNormal,viewDir)))
 		}
 
-		vec4 outColor = ambient + diffuse + specular; // reflectivity
+		vec4 outColor = diffuseBRDF + specularBRDF; // reflectivity
 
 
 		//get coordinates of texture using spherical coordinate system
 		//text color replaces surface color as instead of a color it will get it from a texture
 		//might be good to test a bool here depending on the result of the intersection, if it is a textured object or just a colored object
-		vec3 intPos = intersect - result.pos;
-
-		//convert cartesian to uv coords
-		intPos = normalize(intPos);
-		float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
-		float y = 0.5 - asin(intPos.y) / PI;
+		
 
 		//should be between 0 and 1
 		vec4 textColor;
 //		textColor = vec4(x,y,0,1.0f); //with color map
-		textColor = texture2D(u_albedo[result.texId], vec2(x, y));
+//		textColor = texture2D(u_albedo[result.texId], vec2(x, y));
 //		outColor = textColor * 1.0f; //without shading
-		outColor =  outColor * light.color * textColor * 1.0f; //with shading
+		outColor =  outColor * light.color * 1.0f; //with shading
 		
 //		outColor = outColor * light.color * result.color * 1.0f;
 		return outColor ;
@@ -395,8 +405,8 @@ void main(){
 	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f,1);
 	
 	//set up light
-//	light.pos = vec3(-10.0,1.0,10.0);
-	light.pos = vec3(5.0,1.0,5.0);
+	light.pos = vec3(-10.0,1.0,10.0);
+//	light.pos = vec3(5.0,1.0,5.0);
 //	light.pos = vec3(10.0,1.0,-10.0);
 	light.color = vec4(1.0);
 
