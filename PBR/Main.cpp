@@ -282,7 +282,7 @@ void loadTexture()
 
 	GLuint albedo = glGetUniformLocation(shaderProgram, "u_albedo");
 
-	glUniform1iv(albedo, 2, albedoSamples);
+	glUniform1iv(albedo, textures.size(), albedoSamples);
 
 
 
@@ -315,22 +315,21 @@ void loadTexture()
 			std::cout << "failed to load texture\n";
 		}
 		stbi_image_free(data);
-
 	}
 
 	GLuint roughness = glGetUniformLocation(shaderProgram, "u_roughness");
 
-	glUniform1iv(roughness, 2, roughnessSamples);
+	glUniform1iv(roughness, textures.size(), roughnessSamples);
 
 
 	//load roughness textures
 	GLint metalicSamples[size];
 	for (int i = 0; i < textures.size(); i++)
 	{
-		metalicSamples[i] = i + textures.size();
+		metalicSamples[i] = i + (2*textures.size());
 		unsigned int texture;
 		glGenTextures(1, &texture);
-		glActiveTexture(GL_TEXTURE0 + i + textures.size());
+		glActiveTexture(GL_TEXTURE0 + i + (2*textures.size()));
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -357,7 +356,7 @@ void loadTexture()
 
 	GLuint metalic = glGetUniformLocation(shaderProgram, "u_metalic");
 
-	glUniform1iv(metalic, 2, metalicSamples);
+	glUniform1iv(metalic, textures.size(), metalicSamples);
 
 	return;
 }

@@ -1,8 +1,8 @@
 ﻿  Main.cpp
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(252,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(291,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(328,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(427,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(436,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
-C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(495,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
-  PBR.vcxproj -> C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(252,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(291,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(327,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(426,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(435,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(494,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+  PBR.vcxproj -> C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe

@@ -1,0 +1,100 @@
+vec4 shade(intersectResult result, Ray ray){
+
+		//ray direciton
+		vec3 n = normalize(ray.direction);
+
+		//intersection point
+		vec3 intersect = ray.origin + (result.dist)*n;
+
+		//get surface normal
+		vec3 surfaceNormal = normalize(intersect - result.pos);
+
+		vec3 viewDir = normalize(-ray.direction);
+
+		vec3 lightDir = normalize(light.pos - intersect);
+
+		vec3 halfVector = (surfaceNormal + lightDir ) / length(surfaceNormal+lightDir);
+
+		vec3 intPos = intersect - result.pos;
+
+		//convert cartesian to uv coords
+		intPos = surfaceNormal;
+		float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
+		float y = 0.5 - asin(intPos.y) / PI;
+
+		vec4 diffuseBRDF ;
+		vec4 specularBRDF ;
+
+		vec4 albedo = texture2D(u_albedo[result.texId], vec2(x, y));
+		vec4 metalic = texture2D(u_metalic[result.texId], vec2(x, y));
+		vec4 roughness = texture2D(u_roughness[result.texId], vec2(x, y));
+
+		//BRDF shading
+		vec3 f0 = vec3(0.04);
+		f0 = mix(f0, vec3(albedo), vec3(metalic));
+
+		float cosTheta = dot(surfaceNormal, viewDir);
+
+		//float representing roughness;
+		float a = dot(vec3(roughness), vec3(0.299, 0.587, 0.114));
+
+		//float representing metalic
+		float k = pow(a + 1,2)/8;
+
+		//SHADING Phong
+//		vec3 midDir = normalize(light.direction + viewDir);
+//
+//		//phong shading model // needs to be updated with pbr
+//
+		float ambientStr = 0.1f;
+//
+		vec4 ambient = vec4(ambientStr);
+		ambient *= albedo;
+//		vec4 diffuse;
+//		vec4 specular;
+
+		//make a ray to the light and test for intersections, if intersection happens then its in shadow
+//		Ray lightRay;
+//		intersectResult shadowResult;
+//
+//		lightRay.direction = normalize(light.pos - intersect);
+//		lightRay.origin = intersect + (lightRay.direction * 0.0001f);
+//		shadowResult = simpleIntersect(lightRay);
+//
+//
+//		//if intersection
+//		if(shadowResult.hit)
+//		{
+//			//make diffuse and specular 0
+////			diffuse = vec4(0.0f);
+////			specular = vec4(0.0f);
+//			diffuseBRDF = vec4(0.0f,0,0,1.0f);
+//			specularBRDF = vec4(0.0f);
+//		}else{
+//			//else shade appropriately
+////			diffuse = vec4(max(dot(surfaceNormal, light.direction),0.0f));
+////			specular = vec4(facing(surfaceNormal, light.direction) * pow(max(dot(surfaceNormal, midDir), 0.0f), result.shinyness));
+//
+//			// /4*(dot(surfaceNormal,light.direction)*dot(surfaceNormal,viewDir)))
+//		}
+			diffuseBRDF = vec4((1- fresnelSchlick(cosTheta, f0))*diffuseLambert(albedo), 1.0f);
+			specularBRDF = vec4((DistributionGGX(surfaceNormal, halfVector, a)*fresnelSchlick(cosTheta, f0)*GeometrySmith(surfaceNormal, viewDir, lightDir, k))/4*(dot(surfaceNormal,lightDir)*dot(surfaceNormal,viewDir)) ,1.0f);
+
+		vec4 outColor = diffuseBRDF + specularBRDF; // reflectivity
+
+
+		//get coordinates of texture using spherical coordinate system
+		//text color replaces surface color as instead of a color it will get it from a texture
+		//might be good to test a bool here depending on the result of the intersection, if it is a textured object or just a colored object
+
+
+		//should be between 0 and 1
+		vec4 textColor;
+//		textColor = vec4(x,y,0,1.0f); //with color map
+//		textColor = texture2D(u_albedo[result.texId], vec2(x, y));
+//		outColor = textColor * 1.0f; //without shading
+		outColor =  outColor * light.color * 1.0f; //with shading
+
+//		outColor = outColor * light.color * result.color * 1.0f;
+		return outColor ;
+}
