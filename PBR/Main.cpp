@@ -178,9 +178,10 @@ GLuint LoadShaders()//colour / shade the object
 std::vector<SDL_Keycode> Keys;
 glm::mat4 viewMatrix;
 glm::vec3 light_pos;
-float brightness = 1.0f;
+float brightness = 10.0f;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
+float t;
 
 void moveMouse(glm::vec2 pos)
 {
@@ -203,7 +204,6 @@ bool keyDown(SDL_Keycode key)
 	}
 	return false;
 }
-
 void inputHandeler(float timestep)
 {
 	glUseProgram(shaderProgram);
@@ -241,25 +241,25 @@ void inputHandeler(float timestep)
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -1.0 * timestep, 0.0));
 	}
 
-	if (keyDown(SDLK_UP))
-	{ // move light up
-		light_pos += glm::vec3(0.0, 0.0, -1.0 * timestep);
-	}
+	//if (keyDown(SDLK_UP))
+	//{ // move light up
+	//	light_pos += glm::vec3(0.0, 0.0, -1.0 * timestep);
+	//}
 
-	if (keyDown(SDLK_DOWN))
-	{ // move light down
-		light_pos += glm::vec3(0.0, 0.0, 1.0 * timestep);
-	}
+	//if (keyDown(SDLK_DOWN))
+	//{ // move light down
+	//	light_pos += glm::vec3(0.0, 0.0, 1.0 * timestep);
+	//}
 
-	if (keyDown(SDLK_LEFT))
-	{ // move light left
-		light_pos += glm::vec3(-1.0 * timestep, 0.0, 0.0);
-	}
+	//if (keyDown(SDLK_LEFT))
+	//{ // move light left
+	//	light_pos += glm::vec3(-1.0 * timestep, 0.0, 0.0);
+	//}
 
-	if (keyDown(SDLK_RIGHT))
-	{ // move light right
-		light_pos += glm::vec3(1.0 * timestep, 0.0, 0.0);
-	}
+	//if (keyDown(SDLK_RIGHT))
+	//{ // move light right
+	//	light_pos += glm::vec3(1.0 * timestep, 0.0, 0.0);
+	//}
 	if (keyDown(SDLK_KP_ENTER))
 	{ // move light right
 		brightness += 1.0 * timestep;
@@ -268,7 +268,12 @@ void inputHandeler(float timestep)
 	{ // move light right
 		brightness -= 1.0 * timestep;
 	}
+	
+	float x = sin(t ) * 2;
+	float z = cos(t ) * 2;
+	t+=0.01f;
 
+	light_pos = glm::vec3(x, 0.0, z);
 
 	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
@@ -481,7 +486,7 @@ int main(int argc, char* args[])
 		}
 
 		//do movement and pass it into the shader again
-
+		bool contains; 
 		SDL_Event event;
 		while (SDL_PollEvent(&event))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
 		{
@@ -491,10 +496,13 @@ int main(int argc, char* args[])
 				go = false;
 				break;
 			case SDL_KEYDOWN:
+				contains = false;
 				for (auto it = Keys.begin(); it != Keys.end();)
 				{
+					//TODO fix this
 					if (*it == event.key.keysym.sym)
 					{
+						contains = true;
 						break;
 					}
 					else
@@ -502,7 +510,7 @@ int main(int argc, char* args[])
 						it++;
 					}
 				}
-				Keys.push_back(event.key.keysym.sym);
+				if(!contains) Keys.push_back(event.key.keysym.sym);
 				break;
 			case SDL_KEYUP:
 				//Keys.erase(std::find(Keys.begin(), Keys.end(), event.key.keysym.sym));

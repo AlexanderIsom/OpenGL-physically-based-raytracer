@@ -127,21 +127,20 @@ intersectResult Intersect(Ray ray)
 		if(dist <= objects[i].radius)
 		{ 
 			//goto next object
-			rtn.hit = false;
 			continue;
-		}	
+		}
+		
+		//behind camera
+		if(dist <= 0)
+		{
+			//go to next object
+			continue;
+		}
 
 		//d = (p-a) - ((dot(a,n)) * n)
 		vec3 dVec = pa - (a*n);
 		dist = length(dVec);
 
-		//behind camera
-		if(dist <= 0)
-		{
-			//go to next object
-			rtn.hit = false;
-			continue;
-		}
 
 		if(dist <= objects[i].radius)
 		{
@@ -309,7 +308,7 @@ vec4 Tracer()
 	vec4 color = backGroundColor;
 	Ray ray = genRay(vertexPos);
 	intersectResult result;
-	int reflectCount = 10;
+	int reflectCount = 5;
 	bool reflected = false;
 
 	for(int i = 0; i < 1; i++)
