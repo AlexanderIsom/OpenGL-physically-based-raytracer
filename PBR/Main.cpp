@@ -177,11 +177,12 @@ GLuint LoadShaders()//colour / shade the object
 
 std::vector<SDL_Keycode> Keys;
 glm::mat4 viewMatrix;
-glm::vec3 light_pos;
+glm::vec3 light_pos = glm::vec3(0);
 float brightness = 10.0f;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
 float t;
+float speed = 3;
 
 void moveMouse(glm::vec2 pos)
 {
@@ -210,19 +211,19 @@ void inputHandeler(float timestep)
 
 	if (keyDown(SDLK_w)) // move forward
 	{
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -1.0 * timestep));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, -speed * timestep));
 	}
 	if (keyDown(SDLK_a))
 	{ // move left
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(-1.0 * timestep, 0.0, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(-speed * timestep, 0.0, 0.0));
 	}
 	if (keyDown(SDLK_s))
 	{ // move back
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, 1.0 * timestep));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 0.0, speed * timestep));
 	}
 	if (keyDown(SDLK_d))
 	{ // move right
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(1.0 * timestep, 0.0, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(speed * timestep, 0.0, 0.0));
 	}
 	if (keyDown(SDLK_q))
 	{ // rotate
@@ -234,13 +235,12 @@ void inputHandeler(float timestep)
 	}
 	if (keyDown(SDLK_r))
 	{ // move up
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, 1.0 * timestep, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, speed * timestep, 0.0));
 	}
 	if (keyDown(SDLK_f))
 	{ // move down
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -1.0 * timestep, 0.0));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -speed * timestep, 0.0));
 	}
-
 	//if (keyDown(SDLK_UP))
 	//{ // move light up
 	//	light_pos += glm::vec3(0.0, 0.0, -1.0 * timestep);
@@ -260,6 +260,7 @@ void inputHandeler(float timestep)
 	//{ // move light right
 	//	light_pos += glm::vec3(1.0 * timestep, 0.0, 0.0);
 	//}
+
 	if (keyDown(SDLK_KP_ENTER))
 	{ // move light right
 		brightness += 1.0 * timestep;
@@ -268,10 +269,10 @@ void inputHandeler(float timestep)
 	{ // move light right
 		brightness -= 1.0 * timestep;
 	}
-	
-	float x = sin(t ) * 2;
-	float z = cos(t ) * 2;
-	t+=0.01f;
+
+	float x = sin(t) * 2;
+	float z = cos(t) * 2;
+	t += timestep;
 
 	light_pos = glm::vec3(x, 0.0, z);
 
@@ -307,17 +308,17 @@ void loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		int width, height, nrChannels;
-		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_albedo.jpg";
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_albedo.png";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
 		{
-			std::cout << "failed to load texture\n";
+			std::cout << "failed to load albedo texture\n";
 		}
 		stbi_image_free(data);
 
@@ -346,17 +347,17 @@ void loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		int width, height, nrChannels;
-		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_roughness.jpg";
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_roughness.png";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
 		{
-			std::cout << "failed to load texture\n";
+			std::cout << "failed to load roughness texture\n";
 		}
 		stbi_image_free(data);
 	}
@@ -382,17 +383,17 @@ void loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		int width, height, nrChannels;
-		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_metalic.jpg";
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_metalic.png";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
 		{
-			std::cout << "failed to load texture\n";
+			std::cout << "failed to load metalic texture\n";
 		}
 		stbi_image_free(data);
 
@@ -433,6 +434,7 @@ int main(int argc, char* args[])
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_GL_SetSwapInterval(0);
 
 	if (!InitGL())
 	{
@@ -459,7 +461,9 @@ int main(int argc, char* args[])
 
 	//load textures
 	textures.push_back("iron");
-	textures.push_back("brick");
+	textures.push_back("bamboo");
+	textures.push_back("titanium");
+	textures.push_back("copperRock");
 
 	loadTexture();
 
@@ -467,7 +471,7 @@ int main(int argc, char* args[])
 	int frames = 0;
 	lastTime = 0;
 
-	float startTime = SDL_GetTicks();
+	float startTime = (float)SDL_GetTicks();
 	float timeStep;
 
 	SDL_RaiseWindow(window);
@@ -486,7 +490,7 @@ int main(int argc, char* args[])
 		}
 
 		//do movement and pass it into the shader again
-		bool contains; 
+		bool contains;
 		SDL_Event event;
 		while (SDL_PollEvent(&event))//manages sdl events, such as key press' or just general sdl stuff like sdl quit
 		{
@@ -510,7 +514,7 @@ int main(int argc, char* args[])
 						it++;
 					}
 				}
-				if(!contains) Keys.push_back(event.key.keysym.sym);
+				if (!contains) Keys.push_back(event.key.keysym.sym);
 				break;
 			case SDL_KEYUP:
 				//Keys.erase(std::find(Keys.begin(), Keys.end(), event.key.keysym.sym));
@@ -536,9 +540,12 @@ int main(int argc, char* args[])
 			}
 		}
 
-		timeStep = ((float)SDL_GetTicks() - startTime) / 1000.0f;
-		inputHandeler(timeStep);
-		startTime = SDL_GetTicks();
+		timeStep = ((float)SDL_GetTicks() - startTime);
+		if (timeStep >= 1)
+		{
+			inputHandeler(timeStep / 1000.0f);
+			startTime = (SDL_GetTicks());
+		}
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

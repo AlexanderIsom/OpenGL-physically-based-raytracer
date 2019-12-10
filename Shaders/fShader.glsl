@@ -6,9 +6,9 @@ in vec3 vertexPos;
 uniform mat4 inverseViewMatrix;
 uniform mat4 inverseProjectionMatrix;
 
-uniform sampler2D u_albedo[2];
-uniform sampler2D u_roughness[2];
-uniform sampler2D u_metalic[2];
+uniform sampler2D u_albedo[5];
+uniform sampler2D u_roughness[5];
+uniform sampler2D u_metalic[5];
 uniform int widht, height;
 
 uniform vec3 light_pos;
@@ -52,7 +52,7 @@ struct Sphere
 	int texId;
 };
 
-Sphere objects[2];
+Sphere objects[3];
 
 struct LightSrc{
 	vec3 pos;
@@ -131,7 +131,7 @@ intersectResult Intersect(Ray ray)
 		}
 		
 		//behind camera
-		if(dist <= 0)
+		if(dot(pa,n) <= 0)
 		{
 			//go to next object
 			continue;
@@ -347,7 +347,26 @@ void main(){
 
 	//set up scene
 	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0), 0);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),0);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
+	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
+
+//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
+//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
+//	
+//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
+//
+//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
+//	addObject(vec3(0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
 	
 	//set up light
 
