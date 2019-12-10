@@ -253,12 +253,12 @@ void inputHandeler(float timestep)
 
 	if (keyDown(SDLK_LEFT))
 	{ // move light left
-		light_pos += glm::vec3(-1.0 * timestep, 0.0,0.0 );
+		light_pos += glm::vec3(-1.0 * timestep, 0.0, 0.0);
 	}
 
 	if (keyDown(SDLK_RIGHT))
 	{ // move light right
-		light_pos += glm::vec3(1.0 * timestep, 0.0,0.0 );
+		light_pos += glm::vec3(1.0 * timestep, 0.0, 0.0);
 	}
 	if (keyDown(SDLK_KP_ENTER))
 	{ // move light right
@@ -268,7 +268,7 @@ void inputHandeler(float timestep)
 	{ // move light right
 		brightness -= 1.0 * timestep;
 	}
-	
+
 
 	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
@@ -365,10 +365,10 @@ void loadTexture()
 	GLint metalicSamples[size];
 	for (int i = 0; i < textures.size(); i++)
 	{
-		metalicSamples[i] = i + (2*textures.size());
+		metalicSamples[i] = i + (2 * textures.size());
 		unsigned int texture;
 		glGenTextures(1, &texture);
-		glActiveTexture(GL_TEXTURE0 + i + (2*textures.size()));
+		glActiveTexture(GL_TEXTURE0 + i + (2 * textures.size()));
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -544,6 +544,8 @@ int main(int argc, char* args[])
 	SDL_GL_DeleteContext(glcontext);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+
+	//store average fps
 
 	return 0;
 }

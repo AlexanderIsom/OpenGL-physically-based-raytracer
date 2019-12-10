@@ -97,66 +97,25 @@ Ray genRay(vec3 vertexPos){
 Ray reflectionRay(Ray ray, intersectResult result){
 
 	//intersection point
-	vec3 intersect = ray.origin + (result.dist)*normalize(ray.direction);
+	Ray rtn;
+	vec3 intersect = ray.origin + (result.dist)*ray.direction;
 	vec3 surfaceNormal = normalize(intersect - result.pos);
 
 	vec3 newRayDir = (ray.direction)+2*(dot(-ray.direction,surfaceNormal))*surfaceNormal;
 
-	ray.direction = newRayDir;
-	ray.origin = (intersect + (newRayDir*0.0001f));
+	rtn.direction = normalize(newRayDir);
+	rtn.origin = (intersect + (rtn.direction*0.0001f));
 
-	return ray;
+	return rtn;
 }
-
-intersectResult simpleIntersect(Ray ray){
-	intersectResult rtn;
-	rtn.dist = -1;
-	rtn.hit = false;
-	rtn.color = backGroundColor;
-
-	vec3 n = normalize(ray.direction);
-
-	for(int i = 0; i < objects.length(); i++)
-	{
-		vec3 pa = objects[i].pos - ray.origin;
-		float dist = length(pa);
-		float a = dot(pa,n);
-
-		//its inside the sphere, draw blue sphere
-		if(dist <= objects[i].radius)
-		{
-			rtn.color = vec4(0.0, 0.0,1.0,1.0);		   
-			//goto next object
-			rtn.hit = false;
-			continue;
-		}
-
-		vec3 dVec = pa - (a*n);
-		dist = length(dVec);
-
-		if(dist <= objects[i].radius)
-		{
-			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
-			float hitDist = a-x;
-			if(hitDist < rtn.dist || rtn.dist < 0 && hitDist != rtn.dist && hitDist > 0)
-			{		
-				rtn.hit = true;
-			}
-		}
-	}
-	//function to get hit albedo from 3d positon to uv position and check texture
-return rtn;
-}
-
 
 intersectResult Intersect(Ray ray)
 {
 	intersectResult rtn;
 	rtn.dist = -1;
 	rtn.hit = false;
-	rtn.color = backGroundColor;
 
-	vec3 n = normalize(ray.direction);
+	vec3 n = ray.direction;
 
 	for(int i = 0; i < objects.length(); i++)
 	{
@@ -166,26 +125,23 @@ intersectResult Intersect(Ray ray)
 
 		//its inside the sphere, draw blue sphere
 		if(dist <= objects[i].radius)
-		{
-			rtn.color = vec4(0.0, 0.0,1.0,1.0);		   
+		{ 
 			//goto next object
 			rtn.hit = false;
 			continue;
 		}	
 
-		//object is behind camera, draw purple sphere
-		if(dot(pa,n) < 0)
-		{	
-			rtn.color = vec4(1.0, 0.0,1.0,1.0);
+		//d = (p-a) - ((dot(a,n)) * n)
+		vec3 dVec = pa - (a*n);
+		dist = length(dVec);
+
+		//behind camera
+		if(dist <= 0)
+		{
 			//go to next object
 			rtn.hit = false;
 			continue;
 		}
-
-
-		//d = (p-a) - ((dot(a,n)) * n)
-		vec3 dVec = pa - (a*n);
-		dist = length(dVec);
 
 		if(dist <= objects[i].radius)
 		{
@@ -195,7 +151,6 @@ intersectResult Intersect(Ray ray)
 			{		
 				rtn.hit = true;
 				rtn.dist = hitDist;
-				rtn.color = objects[i].color;
 				rtn.pos = objects[i].pos;
 				vec3 n = normalize(ray.direction);
 				vec3 intersect = ray.origin + (hitDist)*n;
@@ -203,7 +158,7 @@ intersectResult Intersect(Ray ray)
 				vec3 intPos = surfaceNormal;
 				float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
 				float y = 0.5 - asin(intPos.y) / PI;
-				rtn.shinyness = texture(u_metalic[objects[i].texId], vec2(x, y)).g;
+				rtn.shinyness = texture(u_metalic[objects[i].texId], vec2(x, y)).x;
 				rtn.radius = objects[i].radius;
 				rtn.texId = objects[i].texId;
 			}
@@ -257,8 +212,8 @@ return albedo / PI;
 vec4 shade(intersectResult result, Ray ray){
 
 		//ray direciton
-		vec3 n = normalize(ray.direction);
-		vec3 viewDir = normalize(-ray.direction);
+		vec3 n = ray.direction;
+		vec3 viewDir = -ray.direction;
 
 		vec3 intersect = ray.origin + (result.dist)*n;
 		vec3 surfaceNormal = normalize(intersect - result.pos);
@@ -272,67 +227,71 @@ vec4 shade(intersectResult result, Ray ray){
 		float roughness = texture(u_roughness[result.texId], vec2(x, y)).x;
 		vec3 Lo = vec3(0);
 
-		for(int i = 0; i < light.length(); i++){
-		if(i >= lid) break;
+		for(int i = 0; i < light.length(); i++)
+		{
+			if(i >= lid) break;
+						
+			vec3 f0 = albedo;
+			f0 = mix(f0, albedo, metalic);
+			
+			vec3 lightDir = normalize(light[i].pos - intersect);
+
+			vec3 h = normalize(viewDir + lightDir);
+
+			float dist = length(light[i].pos - intersect);
+
 			Ray lightRay;
 			intersectResult shadowResult;
 			lightRay.direction = normalize(light[i].pos - intersect);
 			lightRay.origin = intersect + (lightRay.direction * 0.0001f);
-			shadowResult = simpleIntersect(lightRay);			
-			vec3 f0 = albedo;
-			f0 = mix(f0, albedo, metalic);
+			shadowResult = Intersect(lightRay);
+			vec4 lColor ;
 
-			if(shadowResult.hit)
-			{
-				continue;
+			//calculate shadows
+			if(shadowResult.hit){
+				lColor = vec4(vec3(0), 1.0f);
 			}else{
-			
-				vec3 lightDir = normalize(light[i].pos - intersect);
-
-				vec3 h = normalize(viewDir + lightDir);
-
-				float dist = length(light[i].pos - intersect);
-				float attenuation = 1.0/pow(dist,2);
-				vec3 radiance = vec3(light[i].color) * attenuation;
-
-				float ndf = DistributionGGX(surfaceNormal, h, roughness);
-				float g = GeometrySmith(surfaceNormal, viewDir, lightDir, roughness);
-				vec3 f = fresnelSchlick(max(dot(h,viewDir),0.0), f0);
-
-				vec3 numerator = ndf * g * f;
-				float denominator = 4.0 * max(dot(surfaceNormal, viewDir),0.0) * max(dot(surfaceNormal, lightDir),0.0);
-				vec3 specular = numerator / max(denominator, 0.0001);
-
-				vec3 ks = f;
-				vec3 kd = vec3(1.0)- ks;
-				kd *= 1.0-metalic;
-
-				float ndotl = max(dot(surfaceNormal, lightDir), 0.0);
-
-				//complete the equation, specular + diffuse
-				Lo += (kd * albedo / PI + specular) * radiance * ndotl;
+				lColor = light[i].color;
 			}
+
+			float attenuation = 1.0/pow(dist,2);
+			vec3 radiance = vec3(lColor) * attenuation;
+
+			float ndf = DistributionGGX(surfaceNormal, h, roughness);
+			float g = GeometrySmith(surfaceNormal, viewDir, lightDir, roughness);
+			vec3 f = fresnelSchlick(max(dot(h,viewDir),0.0), f0);
+
+			vec3 numerator = ndf * g * f;
+			float denominator = 4.0 * max(dot(surfaceNormal, viewDir),0.0) * max(dot(surfaceNormal, lightDir),0.0);
+			vec3 specular = numerator / max(denominator, 0.0001);
+
+			vec3 ks = f;
+			vec3 kd = vec3(1.0)- ks;
+			kd *= 1.0-metalic;
+
+			float ndotl = max(dot(surfaceNormal, lightDir), 0.0);
+
+			//complete the equation, specular + diffuse
+			Lo += (kd * albedo / PI + specular) * radiance * ndotl;
 		}
 
 		vec3 ambient = vec3(0.03) * albedo;
 
 		vec3 color = ambient + Lo;
-//
+
+		//gamma, linear and hdr correction
 //		color = color / (color + vec3(1.0));
 //		color = pow(color, vec3(1.0/2.2));  
-
 		vec4 outColor = vec4(color,1.0f);
-
 
 		return outColor;
 }
 
-void addObject(vec3 P, float R, vec4 C, float shinyness, int texId){
+void addObject(vec3 P, float R, vec4 C, int texId){
 	
 	objects[id].pos = P;
 	objects[id].radius = R;
 	objects[id].color = C;
-	objects[id].shinyness = shinyness;
 	objects[id].texId = texId;
 
 	id++;
@@ -359,7 +318,7 @@ vec4 Tracer()
 		{
 			break;
 		}
-
+		result.hit = false;
 		//test for intersection
 		result = Intersect(ray);
 		if(result.hit)
@@ -367,7 +326,7 @@ vec4 Tracer()
 			//if hit an object shade it
 			color = shade(result, ray);
 			//if object is very shiny, gen new ray and redo intersection;
-			if(result.shinyness > 0.7f )
+			if(result.shinyness > 0.9f )
 			{
 				//generate a new ray with reflection ray if the object is reflective
 				ray = reflectionRay(ray, result);
@@ -388,14 +347,14 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0),50.0f, 0);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),10.0f,1);
+	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0), 0);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),0);
 	
 	//set up light
 
 	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(20.0),1.0));
+	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(10.0),1.0));
 	addLight( light_pos ,vec4(vec3(light_brightness),1.0));
-//	addLight( vec3(0.0,1.0,0.0),vec4(vec3(10.0),1.0));
 
 	//return color is result of tracer
 	fColor = Tracer();

@@ -1,10 +1,12 @@
 ﻿  Main.cpp
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(265,31): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(269,31): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(291,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(330,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(366,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(465,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(474,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
-C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(533,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
-  PBR.vcxproj -> C:\Users\Aman1\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(265,31): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(269,31): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(291,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(330,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(366,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(465,18): warning C4244: 'initializing': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(474,29): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\PBR\Main.cpp(533,27): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/PROFILE' specification
+Main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:REF' specification
+  PBR.vcxproj -> C:\Users\Alexander\Desktop\Uni\graphics and computational programming\PBR\Debug\PBR.exe
