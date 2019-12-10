@@ -11,6 +11,9 @@ uniform sampler2D u_roughness[2];
 uniform sampler2D u_metalic[2];
 uniform int widht, height;
 
+uniform vec3 light_pos;
+uniform float light_brightness;
+
 int id;
 
 #define PI 3.1415926535897932384626433832795
@@ -391,7 +394,7 @@ void main(){
 	//set up light
 
 	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(20.0),1.0));
-	addLight( vec3(2.0,0.0,-2.0),vec4(vec3(10.0),1.0));
+	addLight( light_pos ,vec4(vec3(light_brightness),1.0));
 //	addLight( vec3(0.0,1.0,0.0),vec4(vec3(10.0),1.0));
 
 	//return color is result of tracer

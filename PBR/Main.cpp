@@ -177,6 +177,8 @@ GLuint LoadShaders()//colour / shade the object
 
 std::vector<SDL_Keycode> Keys;
 glm::mat4 viewMatrix;
+glm::vec3 light_pos;
+float brightness = 1.0f;
 glm::mat4 projectionMatrix;
 GLuint shaderProgram;
 
@@ -239,8 +241,45 @@ void inputHandeler(float timestep)
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0, -1.0 * timestep, 0.0));
 	}
 
+	if (keyDown(SDLK_UP))
+	{ // move light up
+		light_pos += glm::vec3(0.0, 0.0, -1.0 * timestep);
+	}
+
+	if (keyDown(SDLK_DOWN))
+	{ // move light down
+		light_pos += glm::vec3(0.0, 0.0, 1.0 * timestep);
+	}
+
+	if (keyDown(SDLK_LEFT))
+	{ // move light left
+		light_pos += glm::vec3(-1.0 * timestep, 0.0,0.0 );
+	}
+
+	if (keyDown(SDLK_RIGHT))
+	{ // move light right
+		light_pos += glm::vec3(1.0 * timestep, 0.0,0.0 );
+	}
+	if (keyDown(SDLK_KP_ENTER))
+	{ // move light right
+		brightness += 1.0 * timestep;
+	}
+	if (keyDown(SDLK_KP_PERIOD))
+	{ // move light right
+		brightness -= 1.0 * timestep;
+	}
+	
+
 	GLint view_location = glGetUniformLocation(shaderProgram, "inverseViewMatrix");
 	glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+	GLint light_location = glGetUniformLocation(shaderProgram, "light_pos");
+	glUniform3f(light_location, light_pos.x, light_pos.y, light_pos.z);
+
+	if (brightness < 0) brightness = 0;
+
+	GLint lightBrightness_location = glGetUniformLocation(shaderProgram, "light_brightness");
+	glUniform1f(lightBrightness_location, brightness);
 }
 
 void loadTexture()
