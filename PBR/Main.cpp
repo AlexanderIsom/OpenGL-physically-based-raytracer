@@ -288,6 +288,56 @@ void inputHandeler(float timestep)
 	glUniform1f(lightBrightness_location, brightness);
 }
 
+void loadCubeMap(std::string name)
+{
+	glUseProgram(shaderProgram);
+
+	std::vector<std::string> faces
+	{
+			"right.jpg",
+			"left.jpg",
+			"top.jpg",
+			"bottom.jpg",
+			"front.jpg",
+			"back.jpg"
+	};
+
+	unsigned int texture;
+	int size = 3 * textures.size();
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0 + size);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);	
+
+	int width, height, nrChannels;
+	std::string iPath = "../Materials/" + name + "/";
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		std::string load = iPath + faces[i];
+		unsigned char* data = stbi_load(load.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+			std::cout << "loaded cubemap successfully\n";
+		}
+		else
+		{
+			std::cout << "failed to load skybox texture : " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}	
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	GLuint cube = glGetUniformLocation(shaderProgram, "cubemap");
+
+	glUniform1i(cube, size);
+}
+
 void loadTexture()
 {
 	const int size = 10;
@@ -296,6 +346,7 @@ void loadTexture()
 	//load albedo textures
 	for (int i = 0; i < textures.size(); i++)
 	{
+		std::cout << "loading " + textures[i] + " albedo\n";
 		albedoSamples[i] = i;
 		unsigned int texture;
 		glGenTextures(1, &texture);
@@ -310,6 +361,12 @@ void loadTexture()
 		int width, height, nrChannels;
 		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_albedo.png";
 		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+
+		if (!data)
+		{
+			std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_albedo.jpg";
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		}
 
 		if (data)
 		{
@@ -335,6 +392,7 @@ void loadTexture()
 	GLint roughnessSamples[size];
 	for (int i = 0; i < textures.size(); i++)
 	{
+		std::cout << "loading " + textures[i] + " roughness\n";
 		roughnessSamples[i] = i + textures.size();
 		unsigned int texture;
 		glGenTextures(1, &texture);
@@ -349,6 +407,12 @@ void loadTexture()
 		int width, height, nrChannels;
 		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_roughness.png";
 		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+
+		if (!data)
+		{
+			std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_roughness.jpg";
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		}
 
 		if (data)
 		{
@@ -371,6 +435,7 @@ void loadTexture()
 	GLint metalicSamples[size];
 	for (int i = 0; i < textures.size(); i++)
 	{
+		std::cout << "loading " + textures[i] + " metalic\n";
 		metalicSamples[i] = i + (2 * textures.size());
 		unsigned int texture;
 		glGenTextures(1, &texture);
@@ -385,6 +450,12 @@ void loadTexture()
 		int width, height, nrChannels;
 		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_metalic.png";
 		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+
+		if (!data)
+		{
+			std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_metalic.jpg";
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		}
 
 		if (data)
 		{
@@ -461,11 +532,11 @@ int main(int argc, char* args[])
 
 	//load textures
 	textures.push_back("iron");
-	textures.push_back("bamboo");
 	textures.push_back("titanium");
-	textures.push_back("copperRock");
+	//textures.push_back("copperRock");
 
 	loadTexture();
+	loadCubeMap("skybox/jpg");
 
 	float lastTime, currentTime;
 	int frames = 0;

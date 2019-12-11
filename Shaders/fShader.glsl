@@ -14,6 +14,8 @@ uniform int widht, height;
 uniform vec3 light_pos;
 uniform float light_brightness;
 
+uniform samplerCube cubemap;
+
 int id;
 
 #define PI 3.1415926535897932384626433832795
@@ -34,7 +36,7 @@ struct intersectResult{
 	int texId;
 };
 
-vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
+//vec4 backGroundColor = vec4(0.0, 0.0 ,0.0,1.0);
 //vec4 backGroundColor = vec4(1.0, 1.0 ,1.0,1.0);
 
 Ray genRay(vec3 vertexPos);
@@ -76,7 +78,6 @@ float facing(vec3 a, vec3 b){
 Ray genRay(vec3 vertexPos){
 
 	Ray ray;
-
 	vec4 startPoint = vec4(vertexPos.x,vertexPos.y,-1,1);
 	vec4 endPoint = vec4(vertexPos.x,vertexPos.y,1,1);
 
@@ -141,13 +142,12 @@ intersectResult Intersect(Ray ray)
 		vec3 dVec = pa - (a*n);
 		dist = length(dVec);
 
-
-		if(dist <= objects[i].radius)
+		if(dist <= objects[i].radius )
 		{
 			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
 			float hitDist = a-x;
 			if(hitDist < rtn.dist || rtn.dist < 0 && hitDist != rtn.dist && hitDist > 0)
-			{		
+			{
 				rtn.hit = true;
 				rtn.dist = hitDist;
 				rtn.pos = objects[i].pos;
@@ -158,7 +158,6 @@ intersectResult Intersect(Ray ray)
 				float x = 0.5 + atan(intPos.z, -intPos.x) / (2*PI);
 				float y = 0.5 - asin(intPos.y) / PI;
 				rtn.shinyness = texture(u_metalic[objects[i].texId], vec2(x, y)).x;
-				rtn.radius = objects[i].radius;
 				rtn.texId = objects[i].texId;
 			}
 		}
@@ -208,9 +207,11 @@ vec3 diffuseLambert(vec3 albedo){
 return albedo / PI;
 }
 
-vec4 shade(intersectResult result, Ray ray){
+vec4 shade(intersectResult result, Ray r){
 
 		//ray direciton
+		Ray ray;
+		ray = r;
 		vec3 n = ray.direction;
 		vec3 viewDir = -ray.direction;
 
@@ -280,8 +281,8 @@ vec4 shade(intersectResult result, Ray ray){
 
 		//gamma, linear and hdr correction
 //		color = color / (color + vec3(1.0));
-//		color = pow(color, vec3(1.0/2.2));  
-		vec4 outColor = vec4(color,1.0f);
+//		color = pow(color, vec3(1.0/2.2)); 
+		vec4 outColor = vec4(color, 1.0f);
 
 		return outColor;
 }
@@ -305,11 +306,12 @@ void addLight(vec3 pos, vec4 color){
 
 vec4 Tracer()
 {
-	vec4 color = backGroundColor;
+//	vec4 color = backGroundColor;
 	Ray ray = genRay(vertexPos);
 	intersectResult result;
 	int reflectCount = 5;
-	bool reflected = false;
+	vec4 color = vec4(0.0,0.0,0.0,1.0f);
+	color = texture(cubemap, ray.direction);
 
 	for(int i = 0; i < 1; i++)
 	{
@@ -324,6 +326,7 @@ vec4 Tracer()
 		{
 			//if hit an object shade it
 			color = shade(result, ray);
+
 			//if object is very shiny, gen new ray and redo intersection;
 			if(result.shinyness > 0.9f )
 			{
@@ -334,10 +337,9 @@ vec4 Tracer()
 				reflectCount--;
 			}
 		}
-	}	
+	}
 
 	//loop reflection
-
 	return color;
 };
 
@@ -347,8 +349,8 @@ void main(){
 
 	//set up scene
 	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0), 0);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
-	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
+	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
 
 //	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
 //	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
