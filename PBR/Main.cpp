@@ -303,7 +303,7 @@ void loadCubeMap(std::string name)
 	};
 
 	unsigned int texture;
-	int size = 3 * textures.size();
+	int size = 4 * textures.size();
 	glGenTextures(1, &texture);
 	glActiveTexture(GL_TEXTURE0 + size);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);	
@@ -474,6 +474,49 @@ void loadTexture()
 
 	glUniform1iv(metalic, textures.size(), metalicSamples);
 
+
+	GLint normalSamples[size];
+	for (int i = 0; i < textures.size(); i++)
+	{
+		std::cout << "loading " + textures[i] + " normal\n";
+		normalSamples[i] = i + (3 * textures.size());
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glActiveTexture(GL_TEXTURE0 + i + (3 * textures.size()));
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int width, height, nrChannels;
+		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_normal.png";
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+		if (!data)
+		{
+			std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_normal.jpg";
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		}
+
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "failed to load normal texture\n";
+		}
+		stbi_image_free(data);
+
+	}
+
+	GLuint normal = glGetUniformLocation(shaderProgram, "u_normal");
+
+	glUniform1iv(normal, textures.size(), normalSamples);
+
 	return;
 }
 
@@ -531,9 +574,9 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 	//load textures
-	textures.push_back("iron");
+	textures.push_back("brick");
 	textures.push_back("titanium");
-	//textures.push_back("copperRock");
+	textures.push_back("iron");
 
 	loadTexture();
 	loadCubeMap("skybox/jpg");

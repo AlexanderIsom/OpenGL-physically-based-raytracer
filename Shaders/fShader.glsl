@@ -9,6 +9,7 @@ uniform mat4 inverseProjectionMatrix;
 uniform sampler2D u_albedo[5];
 uniform sampler2D u_roughness[5];
 uniform sampler2D u_metalic[5];
+uniform sampler2D u_normal[5];
 uniform int widht, height;
 
 uniform vec3 light_pos;
@@ -143,7 +144,7 @@ intersectResult Intersect(Ray ray)
 		vec3 dVec = pa - (a*n);
 		dist = length(dVec);
 
-		if(dist <= objects[i].radius )
+		if(dist <= objects[i].radius)
 		{
 			float x = sqrt(pow(objects[i].radius,2)-pow(dist,2));
 			float hitDist = a-x;
@@ -226,12 +227,16 @@ vec4 shade(intersectResult result, Ray r){
 		vec3 albedo = pow(texture(u_albedo[result.texId], vec2(x, y)).rgb, vec3(2.2));
 		float metalic = texture(u_metalic[result.texId], vec2(x, y)).x;
 		float roughness = texture(u_roughness[result.texId], vec2(x, y)).x;
+		vec3 normal = (2.0*texture2D(u_normal[result.texId], vec2(x,y)).rgb)-1.0;
+		normal = normalize(normal);
+
 		vec3 Lo = vec3(0);
 
 		for(int i = 0; i < light.length(); i++)
 		{
 			if(i >= lid) break;
-						
+			
+//			surfaceNormal = normal;
 			vec3 f0 = albedo;
 			f0 = mix(f0, albedo, metalic);
 			
@@ -270,7 +275,7 @@ vec4 shade(intersectResult result, Ray r){
 			vec3 kd = vec3(1.0)- ks;
 			kd *= 1.0-metalic;
 
-			float ndotl = max(dot(surfaceNormal, lightDir), 0.0);
+			float ndotl = max(dot(normal, lightDir), 0.0);
 
 			//complete the equation, specular + diffuse
 			Lo += (kd * albedo / PI + specular) * radiance * ndotl;
@@ -281,8 +286,8 @@ vec4 shade(intersectResult result, Ray r){
 		vec3 color = ambient + Lo;
 
 		//gamma, linear and hdr correction
-//		color = color / (color + vec3(1.0));
-//		color = pow(color, vec3(1.0/2.2)); 
+		color = color / (color + vec3(1.0));
+		color = pow(color, vec3(1.0/2.2)); 
 		vec4 outColor = vec4(color, 1.0f);
 
 		return outColor;
@@ -312,7 +317,7 @@ vec4 Tracer()
 	intersectResult result;
 	int reflectCount = 5;
 	vec4 color = vec4(0.0,0.0,0.0,1.0f);
-	color = texture(cubemap, ray.direction);
+//	color = texture(cubemap, ray.direction);
 
 	for(int i = 0; i < 1; i++)
 	{
@@ -351,9 +356,9 @@ void main(){
 	//set up scene
 	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0), 0);
 	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
-	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
+	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
 
-//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
+//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
 //	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
 //	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
 //	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
@@ -373,8 +378,8 @@ void main(){
 	
 	//set up light
 
-//	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(20.0),1.0));
-//	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(10.0),1.0));
+//	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(10.0),1.0));
+//	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(5.0),1.0));
 	addLight( light_pos ,vec4(vec3(light_brightness),1.0));
 
 	//return color is result of tracer
