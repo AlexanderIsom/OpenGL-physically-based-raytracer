@@ -54,7 +54,7 @@ struct Sphere
 	int texId;
 };
 
-Sphere objects[3];
+Sphere objects[15];
 
 struct LightSrc{
 	vec3 pos;
@@ -120,6 +120,7 @@ intersectResult Intersect(Ray ray)
 
 	for(int i = 0; i < objects.length(); i++)
 	{
+		if(i >= id) break;
 		vec3 pa = objects[i].pos - ray.origin;
 		float dist = length(pa);
 		float a = dot(pa,n);
@@ -353,27 +354,27 @@ void main(){
 	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
 
 //	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
-//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
+//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
 //	
-//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
+//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
 //
-//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
+//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
 	
 	//set up light
 
-	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(20.0),1.0));
-	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(10.0),1.0));
+//	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(20.0),1.0));
+//	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(10.0),1.0));
 	addLight( light_pos ,vec4(vec3(light_brightness),1.0));
 
 	//return color is result of tracer

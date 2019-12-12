@@ -493,12 +493,12 @@ int main(int argc, char* args[])
 
 	int windowPosX = 100;
 	int windowPosY = 100;
-	int windowWidth = 640;
+	int windowWidth = 620;
 	int windowHeight = 480;
 
 
 	//using sdl to prep a window then launching opengl within it
-	SDL_Window* window = SDL_CreateWindow("OpenGL", windowPosX, windowPosY, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+	SDL_Window* window = SDL_CreateWindow("OpenGL", windowPosX, windowPosY, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL );
 
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
