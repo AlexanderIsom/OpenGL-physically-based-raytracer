@@ -492,17 +492,17 @@ void loadTexture()
 
 		int width, height, nrChannels;
 		std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_normal.png";
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 		if (!data)
 		{
 			std::string path = "../Materials/textures/" + textures[i] + "/" + textures[i] + "_normal.jpg";
-			data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 		}
 
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
@@ -574,9 +574,12 @@ int main(int argc, char* args[])
 	glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 	//load textures
-	textures.push_back("brick");
+
 	textures.push_back("titanium");
-	textures.push_back("iron");
+	textures.push_back("copperRock");
+	textures.push_back("octostone");
+	textures.push_back("paint-peeling");
+	textures.push_back("worn-paint");
 
 	loadTexture();
 	loadCubeMap("skybox/jpg");

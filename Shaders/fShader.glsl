@@ -6,10 +6,10 @@ in vec3 vertexPos;
 uniform mat4 inverseViewMatrix;
 uniform mat4 inverseProjectionMatrix;
 
-uniform sampler2D u_albedo[5];
-uniform sampler2D u_roughness[5];
-uniform sampler2D u_metalic[5];
-uniform sampler2D u_normal[5];
+uniform sampler2D u_albedo[13];
+uniform sampler2D u_roughness[13];
+uniform sampler2D u_metalic[13];
+uniform sampler2D u_normal[13];
 uniform int widht, height;
 
 uniform vec3 light_pos;
@@ -75,7 +75,6 @@ float facing(vec3 a, vec3 b){
 	}
 	return 0.0f;
 };
-
 Ray genRay(vec3 vertexPos){
 
 	Ray ray;
@@ -168,9 +167,10 @@ intersectResult Intersect(Ray ray)
 return rtn;
 }
 
-float DistributionGGX(vec3 N, vec3 H, float a)//n = surface normal, h halfway vector between surface normal and light direction, a surface roughness
+float DistributionGGX(vec3 N, vec3 H, float roughness)//n = surface normal, h halfway vector between surface normal and light direction, a surface roughness
 {
-    float a2     = a*a;
+	float a2 = roughness * roughness;
+//    float a2     = a*a;
     float NdotH  = max(dot(N, H), 0.0);
     float NdotH2 = NdotH*NdotH;
 	
@@ -181,8 +181,12 @@ float DistributionGGX(vec3 N, vec3 H, float a)//n = surface normal, h halfway ve
     return nom / denom;
 }
 
-float GeometrySchlickGGX(float NdotV, float k)//n = surface nornmal, v = view direction, k = roughness
+float GeometrySchlickGGX(float NdotV, float roughness)//n = surface nornmal, v = view direction, k = roughness
 {
+//    float r = (roughness + 1.0);
+//    float k = (r*r) / 8.0;
+	float k = roughness;
+
     float nom   = NdotV;
     float denom = NdotV * (1.0 - k) + k;
 	
@@ -209,6 +213,25 @@ vec3 diffuseLambert(vec3 albedo){
 return albedo / PI;
 }
 
+vec3 getNormal(vec2 pos, int id, vec3 objpos, vec3 sN){	
+	
+	vec3 tangentNormal = (texture2D(u_normal[id], vec2(pos.x,pos.y)).xyz * 2.0) - 1.0;
+	
+	vec3 q1 = dFdx(objpos);
+	vec3 q2 = dFdy(objpos);
+	vec2 st1 = dFdx(pos);
+	vec2 st2 = dFdy(pos);
+
+	vec3 n = normalize(sN);
+	vec3 t = normalize(q1*st2.t - q2*st1.t);
+	vec3 b = -normalize(cross(n,t));
+
+	mat3 tbn = mat3(t,b,n);
+
+
+	return normalize(tbn * tangentNormal);
+}
+
 vec4 shade(intersectResult result, Ray r){
 
 		//ray direciton
@@ -225,20 +248,17 @@ vec4 shade(intersectResult result, Ray r){
 		float y = 0.5 - asin(intPos.y) / PI;
 
 		vec3 albedo = pow(texture(u_albedo[result.texId], vec2(x, y)).rgb, vec3(2.2));
-		float metalic = texture(u_metalic[result.texId], vec2(x, y)).x;
-		float roughness = texture(u_roughness[result.texId], vec2(x, y)).x;
-		vec3 normal = (2.0*texture2D(u_normal[result.texId], vec2(x,y)).rgb)-1.0;
-		normal = normalize(normal);
+		float metalic = texture(u_metalic[result.texId], vec2(x, y)).r;
+		float roughness = texture(u_roughness[result.texId], vec2(x, y)).r;
+		vec3 normal = getNormal(vec2(x,y), result.texId, -intersect, surfaceNormal);
+		vec3 f0 = albedo;
+		f0 = mix(f0, albedo, metalic);
 
 		vec3 Lo = vec3(0);
 
 		for(int i = 0; i < light.length(); i++)
 		{
 			if(i >= lid) break;
-			
-//			surfaceNormal = normal;
-			vec3 f0 = albedo;
-			f0 = mix(f0, albedo, metalic);
 			
 			vec3 lightDir = normalize(light[i].pos - intersect);
 
@@ -263,12 +283,12 @@ vec4 shade(intersectResult result, Ray r){
 			float attenuation = 1.0/pow(dist,2);
 			vec3 radiance = vec3(lColor) * attenuation;
 
-			float ndf = DistributionGGX(surfaceNormal, h, roughness);
-			float g = GeometrySmith(surfaceNormal, viewDir, lightDir, roughness);
+			float ndf = DistributionGGX(normal, h, roughness);
+			float g = GeometrySmith(normal, viewDir, lightDir, roughness);
 			vec3 f = fresnelSchlick(max(dot(h,viewDir),0.0), f0);
 
 			vec3 numerator = ndf * g * f;
-			float denominator = 4.0 * max(dot(surfaceNormal, viewDir),0.0) * max(dot(surfaceNormal, lightDir),0.0);
+			float denominator = 4.0 * max(dot(normal, viewDir),0.0) * max(dot(normal, lightDir),0.0);
 			vec3 specular = numerator / max(denominator, 0.0001);
 
 			vec3 ks = f;
@@ -286,18 +306,17 @@ vec4 shade(intersectResult result, Ray r){
 		vec3 color = ambient + Lo;
 
 		//gamma, linear and hdr correction
-		color = color / (color + vec3(1.0));
-		color = pow(color, vec3(1.0/2.2)); 
+//		color = color / (color + vec3(1.0));
+//		color = pow(color, vec3(1.0/2.2)); 
 		vec4 outColor = vec4(color, 1.0f);
 
 		return outColor;
 }
 
-void addObject(vec3 P, float R, vec4 C, int texId){
+void addObject(vec3 P, float R, int texId){
 	
 	objects[id].pos = P;
 	objects[id].radius = R;
-	objects[id].color = C;
 	objects[id].texId = texId;
 
 	id++;
@@ -354,32 +373,34 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-	addObject(vec3(0.0,0.0, -1.0),0.1f,vec4(0.0,1.0,0.0,1.0), 0);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),1);
-	addObject(vec3(0.15,0.0, -0.8),0.06f,vec4(0.1, 0.7, 0.9,1.0),2);
+	addObject(vec3(0.0,0.0, -0.8),0.08f, 0);
+	addObject(vec3(-0.3,0.0, -0.8),0.06f,1);
+	addObject(vec3(-0.15,0.0, -0.8),0.06f,2);
+	addObject(vec3(0.15,0.0, -0.8),0.06f,3);
+	addObject(vec3(0.3,0.0, -0.8),0.06f,4);
 
-//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);
-//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
-//	
-//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 8);
 //	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
+//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
+//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 7);
+//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
 //
-//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
+//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 9);
+//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 3);
+//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
+//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 12);
+//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 4);		
+//
+//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 10);
+//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 6);
+//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
+//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
 //	addObject(vec3(0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
 	
 	//set up light
 
-//	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(10.0),1.0));
-//	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(5.0),1.0));
+	addLight( vec3(-1.0,0.0,1.0),vec4(vec3(10.0),1.0));
+//	addLight( vec3(1.0,0.0,-1.0),vec4(vec3(50.0),1.0));
 	addLight( light_pos ,vec4(vec3(light_brightness),1.0));
 
 	//return color is result of tracer
