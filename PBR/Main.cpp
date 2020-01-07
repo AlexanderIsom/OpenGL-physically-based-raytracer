@@ -536,8 +536,8 @@ int main(int argc, char* args[])
 
 	int windowPosX = 100;
 	int windowPosY = 100;
-	int windowWidth = 620;
-	int windowHeight = 480;
+	int windowWidth = 860;
+	int windowHeight = 540;
 
 
 	//using sdl to prep a window then launching opengl within it

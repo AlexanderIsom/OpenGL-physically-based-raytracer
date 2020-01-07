@@ -336,7 +336,7 @@ vec4 Tracer()
 	intersectResult result;
 	int reflectCount = 5;
 	vec4 color = vec4(0.0,0.0,0.0,1.0f);
-//	color = texture(cubemap, ray.direction);
+	color = texture(cubemap, ray.direction);
 
 	for(int i = 0; i < 1; i++)
 	{
@@ -373,11 +373,11 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-	addObject(vec3(0.0,0.0, -0.8),0.08f, 0);
+//	addObject(vec3(0.0,0.0, -0.8),0.08f, 0);
 	addObject(vec3(-0.3,0.0, -0.8),0.06f,1);
 	addObject(vec3(-0.15,0.0, -0.8),0.06f,2);
-	addObject(vec3(0.15,0.0, -0.8),0.06f,3);
-	addObject(vec3(0.3,0.0, -0.8),0.06f,4);
+//	addObject(vec3(0.15,0.0, -0.8),0.06f,3);
+//	addObject(vec3(0.3,0.0, -0.8),0.06f,4);
 
 //	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 8);
 //	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
