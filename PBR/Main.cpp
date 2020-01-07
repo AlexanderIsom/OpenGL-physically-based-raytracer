@@ -262,11 +262,11 @@ void inputHandeler(float timestep)
 	//}
 
 	if (keyDown(SDLK_KP_ENTER))
-	{ // move light right
+	{ // increase light brightness
 		brightness += 1.0 * timestep;
 	}
 	if (keyDown(SDLK_KP_PERIOD))
-	{ // move light right
+	{ // decrease light brighness
 		brightness -= 1.0 * timestep;
 	}
 

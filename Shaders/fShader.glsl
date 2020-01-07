@@ -373,7 +373,7 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-//	addObject(vec3(0.0,0.0, -0.8),0.08f, 0);
+	addObject(vec3(0.0,0.0, -1.0),0.08f, 0);
 	addObject(vec3(-0.3,0.0, -0.8),0.06f,1);
 	addObject(vec3(-0.15,0.0, -0.8),0.06f,2);
 //	addObject(vec3(0.15,0.0, -0.8),0.06f,3);
