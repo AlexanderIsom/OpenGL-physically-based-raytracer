@@ -336,7 +336,8 @@ vec4 Tracer()
 	intersectResult result;
 	int reflectCount = 5;
 	vec4 color = vec4(0.0,0.0,0.0,1.0f);
-	color = texture(cubemap, ray.direction);
+	//color = texture(cubemap, ray.direction);
+	float previousShinyness = 1.0f;
 
 	for(int i = 0; i < 1; i++)
 	{
@@ -350,19 +351,22 @@ vec4 Tracer()
 		if(result.hit)
 		{
 			//if hit an object shade it
-			color = shade(result, ray);
-
+			color = shade(result, ray) * previousShinyness;
 			//if object is very shiny, gen new ray and redo intersection;
 			if(result.shinyness > 0.9f )
 			{
+				previousShinyness = result.shinyness;
 				//generate a new ray with reflection ray if the object is reflective
 				ray = reflectionRay(ray, result);
 				//restart loop as an itterative recursion approach
 				i--;
 				reflectCount--;
 			}
+		}else{
+			color += texture(cubemap, ray.direction) * previousShinyness;
 		}
 	}
+	
 
 	//loop reflection
 	return color;
@@ -373,29 +377,29 @@ vec4 Tracer()
 void main(){
 
 	//set up scene
-	addObject(vec3(0.0,0.0, -1.0),0.08f, 0);
-	addObject(vec3(-0.3,0.0, -0.8),0.06f,1);
-	addObject(vec3(-0.15,0.0, -0.8),0.06f,2);
+	//addObject(vec3(0.0,0.0, -1.0),0.08f, 0);
+	//addObject(vec3(-0.3,0.0, -0.8),0.06f,1);
+	//addObject(vec3(-0.15,0.0, -0.8),0.06f,2);
 //	addObject(vec3(0.15,0.0, -0.8),0.06f,3);
 //	addObject(vec3(0.3,0.0, -0.8),0.06f,4);
 
-//	addObject(vec3(-0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 8);
-//	addObject(vec3(-0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);
-//	addObject(vec3(0.0,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
-//	addObject(vec3(0.15,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 7);
-//	addObject(vec3(0.30,0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 2);	
-//
-//	addObject(vec3(-0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 9);
-//	addObject(vec3(-0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 3);
-//	addObject(vec3(0.0,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
-//	addObject(vec3(0.15,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 12);
-//	addObject(vec3(0.30,0.0, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 4);		
-//
-//	addObject(vec3(-0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 10);
-//	addObject(vec3(-0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 6);
-//	addObject(vec3(0.0,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 11);
-//	addObject(vec3(0.15,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 0);
-//	addObject(vec3(0.30,-0.15, -1.0),0.06f,vec4(0.0,1.0,0.0,1.0), 1);	
+	addObject(vec3(-0.30,0.15, -1.0),0.06f, 0);
+	addObject(vec3(-0.15,0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.0,0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.15,0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.30,0.15, -1.0),0.06f, 0);	
+
+	addObject(vec3(-0.30,0.0, -1.0),0.06f, 0);
+	addObject(vec3(-0.15,0.0, -1.0),0.06f, 0);
+	addObject(vec3(0.0,0.0, -1.0),0.06f, 0);
+	addObject(vec3(0.15,0.0, -1.0),0.06f, 0);
+	addObject(vec3(0.30,0.0, -1.0),0.06f, 0);		
+
+	addObject(vec3(-0.30,-0.15, -1.0),0.06f, 0);
+	addObject(vec3(-0.15,-0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.0,-0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.15,-0.15, -1.0),0.06f, 0);
+	addObject(vec3(0.30,-0.15, -1.0),0.06f, 0);	
 	
 	//set up light
 

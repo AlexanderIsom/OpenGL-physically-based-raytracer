@@ -576,10 +576,10 @@ int main(int argc, char* args[])
 	//load textures
 
 	textures.push_back("titanium");
-	textures.push_back("copperRock");
-	textures.push_back("octostone");
-	textures.push_back("paint-peeling");
-	textures.push_back("worn-paint");
+	//textures.push_back("copperRock");
+	//textures.push_back("octostone");
+	//textures.push_back("paint-peeling");
+	//textures.push_back("worn-paint");
 
 	loadTexture();
 	loadCubeMap("skybox/jpg");
