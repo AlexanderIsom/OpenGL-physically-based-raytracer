@@ -1,0 +1,4 @@
+C:/Users/Alexander/Desktop/Uni/graphics and computational programming/PBR/build/CMakeFiles/PBR.dir
+C:/Users/Alexander/Desktop/Uni/graphics and computational programming/PBR/build/CMakeFiles/core.dir
+C:/Users/Alexander/Desktop/Uni/graphics and computational programming/PBR/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Alexander/Desktop/Uni/graphics and computational programming/PBR/build/CMakeFiles/ZERO_CHECK.dir
